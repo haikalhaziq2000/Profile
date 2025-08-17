@@ -33,8 +33,8 @@ Photos/
 
 ## Contact
 
-- Email: [haikalhaziq@gmail.com](mailto:haikalhaziq@gmail.com)
-- LinkedIn: [linkedin.com/in/haikalhaziq](https://linkedin.com/in/haikalhaziq)
+- Email: [ahmadhaikalhaziq@gmail.com](mailto:ahmadhaikalhaziq@gmail.com)
+- LinkedIn: [linkedin.com/in/haikalhaziq](https://linkedin.com/in/ahmadhaikalhaziq)
 - GitHub: [github.com/haikalhaziq2000](https://github.com/haikalhaziq2000)
 
 ---
