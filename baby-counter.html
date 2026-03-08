@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Baby Kicks</title>
+  <title>Helena Amaya ♡</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -60,15 +60,24 @@
 
     .header-title {
       font-family: 'DM Serif Display', serif;
-      font-size: 20px;
-      letter-spacing: 0.03em;
+      font-size: 26px;
+      letter-spacing: 0.02em;
       color: var(--text);
+    }
+
+    .header-subtitle {
+      font-size: 11px;
+      color: var(--rose);
+      margin-top: 2px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      opacity: 0.8;
     }
 
     .header-date {
       font-size: 11px;
       color: var(--muted2);
-      margin-top: 3px;
+      margin-top: 5px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
@@ -88,6 +97,12 @@
       display: none;
       flex-direction: column;
       -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .tab-panel::-webkit-scrollbar {
+      display: none;
     }
 
     .tab-panel.active {
@@ -330,6 +345,108 @@
       height: 22px;
     }
 
+    /* ── History filter ── */
+    .hist-filter {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: var(--bg);
+      padding: 12px 16px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .filter-chips {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 12px;
+    }
+
+    .filter-chips::-webkit-scrollbar { display: none; }
+
+    .chip {
+      flex-shrink: 0;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted2);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      -webkit-appearance: none;
+      white-space: nowrap;
+    }
+
+    .chip.active {
+      background: var(--rose-soft);
+      border-color: var(--rose);
+      color: var(--rose);
+    }
+
+    .date-range {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 0 12px;
+    }
+
+    .date-range input[type="date"] {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      padding: 8px 10px;
+      -webkit-appearance: none;
+      appearance: none;
+      color-scheme: dark;
+      min-width: 0;
+    }
+
+    .date-range-sep {
+      color: var(--muted);
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    /* Aggregate summary card */
+    .agg-card {
+      background: linear-gradient(135deg, rgba(232,116,138,0.10), rgba(232,116,138,0.03));
+      border: 1px solid rgba(232,116,138,0.22);
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 12px;
+    }
+
+    .agg-title {
+      font-size: 10px;
+      color: var(--rose);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 14px;
+    }
+
+    .agg-total {
+      font-family: 'DM Serif Display', serif;
+      font-size: 56px;
+      line-height: 1;
+      color: var(--text);
+    }
+
+    .agg-total-label {
+      font-size: 11px;
+      color: var(--muted2);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-top: 2px;
+      margin-bottom: 16px;
+    }
+
     /* ── History ── */
     .history-list {
       padding: 16px 16px 24px;
@@ -482,7 +599,8 @@
 
   <!-- Header -->
   <header class="header">
-    <div class="header-title">Baby Kicks</div>
+    <div class="header-title">Helena Amaya</div>
+    <div class="header-subtitle">her little kicks ♡</div>
     <div class="header-date" id="headerDate"></div>
   </header>
 
@@ -494,14 +612,14 @@
       <div class="counter-section">
         <div class="count-display">
           <span class="count-number" id="countNumber">—</span>
-          <span class="count-label">kicks today</span>
+          <span class="count-label">Helena's kicks today</span>
         </div>
         <div class="glow-ring" id="glowRing">
           <button class="counter-btn" id="counterBtn" aria-label="Record kick">
             <span class="btn-heart">♡</span>
           </button>
         </div>
-        <p class="tap-hint">tap to record a kick</p>
+        <p class="tap-hint">tap each time Helena moves ♡</p>
       </div>
       <div class="kicks-list" id="kicksList">
         <div class="loading"><span></span><span></span><span></span></div>
@@ -510,9 +628,21 @@
 
     <!-- History tab -->
     <div class="tab-panel" data-tab="history">
-      <div class="history-list" id="historyList">
-        <div class="loading"><span></span><span></span><span></span></div>
+      <div class="hist-filter">
+        <div class="filter-chips" id="filterChips">
+          <button class="chip active" data-mode="all">All time</button>
+          <button class="chip" data-mode="today">Today</button>
+          <button class="chip" data-mode="week">This week</button>
+          <button class="chip" data-mode="month">This month</button>
+          <button class="chip" data-mode="custom">Custom</button>
+        </div>
+        <div class="date-range" id="dateRange" style="display:none">
+          <input type="date" id="dateFrom" aria-label="From date">
+          <span class="date-range-sep">—</span>
+          <input type="date" id="dateTo" aria-label="To date">
+        </div>
       </div>
+      <div class="history-list" id="historyList"></div>
     </div>
 
   </main>
@@ -547,6 +677,7 @@
 
   let todayKicks = [];
   let isAdding   = false;
+  let histFilter = { mode: 'all', from: null, to: null };
 
   // ── Session key (device identifier) ──
   function getSessionKey() {
@@ -621,16 +752,46 @@
     renderToday();
   }
 
+  function getFilterDates() {
+    const now = new Date();
+    switch (histFilter.mode) {
+      case 'today': {
+        const s = new Date(); s.setHours(0, 0, 0, 0);
+        const e = new Date(); e.setHours(23, 59, 59, 999);
+        return { from: s.toISOString(), to: e.toISOString() };
+      }
+      case 'week': {
+        const s = new Date(); s.setDate(now.getDate() - 6); s.setHours(0, 0, 0, 0);
+        return { from: s.toISOString(), to: null };
+      }
+      case 'month': {
+        const s = new Date(); s.setDate(now.getDate() - 29); s.setHours(0, 0, 0, 0);
+        return { from: s.toISOString(), to: null };
+      }
+      case 'custom': {
+        const from = histFilter.from ? new Date(histFilter.from + 'T00:00:00').toISOString() : null;
+        const to   = histFilter.to   ? new Date(histFilter.to   + 'T23:59:59').toISOString() : null;
+        return { from, to };
+      }
+      default: return { from: null, to: null };
+    }
+  }
+
   async function fetchHistory() {
     const el = document.getElementById('historyList');
     el.innerHTML = '<div class="loading"><span></span><span></span><span></span></div>';
 
-    const { data } = await client
+    const { from, to } = getFilterDates();
+    let query = client
       .from('kicks')
       .select('*')
       .eq('session_key', getSessionKey())
       .order('kicked_at', { ascending: true });
 
+    if (from) query = query.gte('kicked_at', from);
+    if (to)   query = query.lte('kicked_at', to);
+
+    const { data } = await query;
     renderHistory(groupByDay(data || []));
   }
 
@@ -676,7 +837,7 @@
       list.innerHTML = `
         <div class="empty-state">
           <div class="empty-icon">♡</div>
-          <div class="empty-text">No kicks logged yet today.<br>Tap the button each time baby moves.</div>
+          <div class="empty-text">Helena hasn't moved yet today.<br>Tap the button each time she does.</div>
         </div>`;
       return;
     }
@@ -687,7 +848,57 @@
         <button class="kick-delete" onclick="deleteKick(${k.id})" aria-label="Remove kick">×</button>
       </div>`).join('');
 
-    list.innerHTML = `<div class="section-label">Today's log</div>` + items;
+    list.innerHTML = `<div class="section-label">Helena's kicks today ♡</div>` + items;
+  }
+
+  // ── Aggregate card (multi-day summary) ──
+  function renderAggCard(grouped, days) {
+    const allKicks  = days.flatMap(d => grouped[d]);
+    const kpi       = calcKPIs(allKicks);
+    const avgPerDay = Math.round(kpi.total / days.length);
+
+    const busiestDay = days.reduce((best, d) =>
+      grouped[d].length > grouped[best].length ? d : best, days[0]);
+    const { full: busiestFull } = formatDateParts(busiestDay);
+
+    const avgStr = kpi.avgMin !== null
+      ? (kpi.avgMin < 60 ? `${kpi.avgMin} min` : `${Math.round(kpi.avgMin / 60)}h ${kpi.avgMin % 60}m`)
+      : '—';
+
+    const segs = kpi.hourCounts.map((count, h) => {
+      const height = kpi.maxCount > 0 ? Math.max(2, Math.round((count / kpi.maxCount) * 28)) : 2;
+      return `<div class="hour-seg ${count > 0 ? 'active' : ''}" style="height:${height}px"></div>`;
+    }).join('');
+
+    return `
+      <div class="agg-card">
+        <div class="agg-title">Helena's summary · ${days.length} days ♡</div>
+        <div class="agg-total">${kpi.total}</div>
+        <div class="agg-total-label">little kicks</div>
+        <div class="kpi-grid">
+          <div class="kpi-item">
+            <div class="kpi-label">Avg per day</div>
+            <div class="kpi-value">${avgPerDay}</div>
+          </div>
+          <div class="kpi-item">
+            <div class="kpi-label">Avg interval</div>
+            <div class="kpi-value">${avgStr}</div>
+          </div>
+          <div class="kpi-item">
+            <div class="kpi-label">Most active hr</div>
+            <div class="kpi-value">${formatHourLabel(kpi.busiestHr)}</div>
+          </div>
+          <div class="kpi-item">
+            <div class="kpi-label">Busiest day</div>
+            <div class="kpi-value" style="font-size:13px;line-height:1.3">${busiestFull}</div>
+          </div>
+        </div>
+        <div class="dist-label">Helena's activity by hour</div>
+        <div class="hour-bar">${segs}</div>
+        <div class="hour-axis">
+          <span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>11pm</span>
+        </div>
+      </div>`;
   }
 
   // ── Render: History ──
@@ -699,12 +910,14 @@
       el.innerHTML = `
         <div class="empty-state">
           <div class="empty-icon">♡</div>
-          <div class="empty-text">No history yet.<br>Your daily stats will appear here.</div>
+          <div class="empty-text">No kicks from Helena in this period.</div>
         </div>`;
       return;
     }
 
-    el.innerHTML = days.map(day => {
+    const aggHTML = days.length > 1 ? renderAggCard(grouped, days) : '';
+
+    el.innerHTML = aggHTML + days.map(day => {
       const kpi  = calcKPIs(grouped[day]);
       const { dayName, full } = formatDateParts(day);
 
@@ -727,7 +940,7 @@
             </div>
             <div class="day-total-wrap">
               <div class="day-total">${kpi.total}</div>
-              <div class="day-total-label">kicks</div>
+              <div class="day-total-label">little kicks</div>
             </div>
           </div>
 
@@ -750,7 +963,7 @@
             </div>
           </div>
 
-          <div class="dist-label">Activity by hour</div>
+          <div class="dist-label">Helena's activity by hour</div>
           <div class="hour-bar">${segs}</div>
           <div class="hour-axis">
             <span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>11pm</span>
@@ -789,6 +1002,28 @@
     btn.appendChild(ripple);
     setTimeout(() => ripple.remove(), 560);
   }
+
+  // ── History filter handlers ──
+  document.getElementById('filterChips').addEventListener('click', e => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    histFilter.mode = chip.dataset.mode;
+    const dateRange = document.getElementById('dateRange');
+    dateRange.style.display = histFilter.mode === 'custom' ? 'flex' : 'none';
+    if (histFilter.mode !== 'custom') fetchHistory();
+  });
+
+  document.getElementById('dateFrom').addEventListener('change', e => {
+    histFilter.from = e.target.value;
+    if (histFilter.from || histFilter.to) fetchHistory();
+  });
+
+  document.getElementById('dateTo').addEventListener('change', e => {
+    histFilter.to = e.target.value;
+    if (histFilter.from || histFilter.to) fetchHistory();
+  });
 
   // ── Tab switching ──
   document.querySelectorAll('.tab-btn').forEach(btn => {
