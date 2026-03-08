@@ -679,14 +679,9 @@
   let isAdding   = false;
   let histFilter = { mode: 'all', from: null, to: null };
 
-  // ── Session key (device identifier) ──
+  // ── Shared session key — same across all devices/browsers ──
   function getSessionKey() {
-    let key = localStorage.getItem('baby_session_key');
-    if (!key) {
-      key = 'sk_' + Date.now().toString(36) + Math.random().toString(36).slice(2);
-      localStorage.setItem('baby_session_key', key);
-    }
-    return key;
+    return 'helena-amaya';
   }
 
   // ── Formatting helpers ──
@@ -1038,14 +1033,20 @@
 
   // ── Counter button ──
   const counterBtn = document.getElementById('counterBtn');
+  let touchHandled = false;
+
+  counterBtn.addEventListener('touchstart', e => {
+    e.preventDefault();
+    touchHandled = true;
+    spawnRipple(e);
+    addKick();
+  }, { passive: false });
 
   counterBtn.addEventListener('click', e => {
+    if (touchHandled) { touchHandled = false; return; }
     spawnRipple(e);
     addKick();
   });
-
-  // prevent double-fire on touch devices
-  counterBtn.addEventListener('touchend', e => e.preventDefault(), { passive: false });
 
   // ── Init ──
   document.getElementById('headerDate').textContent =
