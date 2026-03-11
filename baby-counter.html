@@ -286,6 +286,71 @@
       color: var(--rose);
     }
 
+    .kick-actions {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .kick-edit {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      line-height: 1;
+      transition: all 0.15s ease;
+      -webkit-appearance: none;
+      flex-shrink: 0;
+    }
+
+    .kick-edit:active {
+      background: rgba(232, 116, 138, 0.15);
+      border-color: var(--rose);
+      color: var(--rose);
+    }
+
+    .kick-time-input {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--rose);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'DM Serif Display', serif;
+      font-size: 17px;
+      padding: 5px 9px;
+      color-scheme: dark;
+      -webkit-appearance: none;
+      appearance: none;
+      min-width: 0;
+      outline: none;
+    }
+
+    .kick-save {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: 1px solid var(--rose);
+      background: var(--rose-soft);
+      color: var(--rose);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      line-height: 1;
+      transition: all 0.15s ease;
+      -webkit-appearance: none;
+      flex-shrink: 0;
+    }
+
     /* ── Empty state ── */
     .empty-state {
       text-align: center;
@@ -677,6 +742,7 @@
 
   let todayKicks = [];
   let isAdding   = false;
+  let editingId  = null;
   let histFilter = { mode: 'all', from: null, to: null };
 
   // ── Shared session key — same across all devices/browsers ──
@@ -728,6 +794,49 @@
     const { error } = await client.from('kicks').delete().eq('id', id);
     if (!error) {
       todayKicks = todayKicks.filter(k => k.id !== id);
+      if (editingId === id) editingId = null;
+      renderToday();
+    }
+  }
+
+  function getLocalTimeValue(dateStr) {
+    const d = new Date(dateStr);
+    return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  }
+
+  function buildNewTimestamp(originalDateStr, newTimeValue) {
+    const d = new Date(originalDateStr);
+    const [h, m] = newTimeValue.split(':').map(Number);
+    d.setHours(h, m, 0, 0);
+    return d.toISOString();
+  }
+
+  function editKick(id) {
+    editingId = id;
+    renderToday();
+    // Focus the input after render
+    requestAnimationFrame(() => {
+      const input = document.getElementById(`edit-${id}`);
+      if (input) input.focus();
+    });
+  }
+
+  function cancelEdit() {
+    editingId = null;
+    renderToday();
+  }
+
+  async function saveKick(id) {
+    const input = document.getElementById(`edit-${id}`);
+    if (!input || !input.value) return;
+    const kick = todayKicks.find(k => k.id === id);
+    if (!kick) return;
+    const newTs = buildNewTimestamp(kick.kicked_at, input.value);
+    const { error } = await client.from('kicks').update({ kicked_at: newTs }).eq('id', id);
+    if (!error) {
+      kick.kicked_at = newTs;
+      todayKicks.sort((a, b) => new Date(b.kicked_at) - new Date(a.kicked_at));
+      editingId = null;
       renderToday();
     }
   }
@@ -837,11 +946,27 @@
       return;
     }
 
-    const items = todayKicks.map(k => `
+    const items = todayKicks.map(k => {
+      if (k.id === editingId) {
+        return `
+      <div class="kick-item" data-id="${k.id}">
+        <input type="time" class="kick-time-input" id="edit-${k.id}" value="${getLocalTimeValue(k.kicked_at)}"
+          onkeydown="if(event.key==='Enter')saveKick(${k.id});if(event.key==='Escape')cancelEdit()">
+        <div class="kick-actions">
+          <button class="kick-save" onclick="saveKick(${k.id})" aria-label="Save time">✓</button>
+          <button class="kick-delete" onclick="cancelEdit()" aria-label="Cancel">×</button>
+        </div>
+      </div>`;
+      }
+      return `
       <div class="kick-item" data-id="${k.id}">
         <div class="kick-time">${formatTime(k.kicked_at)}</div>
-        <button class="kick-delete" onclick="deleteKick(${k.id})" aria-label="Remove kick">×</button>
-      </div>`).join('');
+        <div class="kick-actions">
+          <button class="kick-edit" onclick="editKick(${k.id})" aria-label="Edit time">✎</button>
+          <button class="kick-delete" onclick="deleteKick(${k.id})" aria-label="Remove kick">×</button>
+        </div>
+      </div>`;
+    }).join('');
 
     list.innerHTML = `<div class="section-label">Helena's kicks today ♡</div>` + items;
   }
