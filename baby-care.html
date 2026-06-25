@@ -762,7 +762,7 @@
       display: flex;
       align-items: flex-end;
       gap: 4px;
-      height: 64px;
+      height: 82px;
     }
 
     .bar-stack {
@@ -771,6 +771,15 @@
       flex-direction: column;
       gap: 1px;
       align-self: flex-end;
+    }
+
+    .bar-total {
+      font-size: 9px;
+      color: var(--muted2);
+      text-align: center;
+      margin-bottom: 3px;
+      min-height: 11px;
+      line-height: 1;
     }
 
     .bar-formula {
@@ -1191,7 +1200,7 @@
     .growth-chart-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
     .growth-chart-title { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
     .growth-chart-latest { font-family: 'DM Serif Display', serif; font-size: 16px; color: var(--rose); }
-    .growth-svg { width: 100%; height: 60px; display: block; overflow: visible; }
+    .growth-svg { width: 100%; height: auto; display: block; }
     .growth-empty { font-size: 11px; color: var(--muted); padding: 6px 0; }
     .facts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 6px 0 10px; }
     .fact { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
@@ -1211,6 +1220,23 @@
       display: flex; align-items: center; justify-content: center;
       font-family: 'DM Serif Display', serif; color: var(--rose);
     }
+
+    /* entry photos */
+    .entry-thumb {
+      width: 44px; height: 44px; border-radius: 10px; object-fit: cover;
+      cursor: pointer; flex-shrink: 0; margin-right: 10px; border: 1px solid var(--border);
+    }
+    .entry-thumb-add {
+      width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0; margin-right: 10px;
+      border: 1px dashed rgba(232,116,138,0.45); background: transparent;
+      font-size: 16px; cursor: pointer; -webkit-appearance: none;
+    }
+    .entry-viewer { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; }
+    .entry-viewer-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.85); }
+    .entry-viewer-card { position: relative; max-width: 92%; max-height: 90%; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+    .entry-viewer-card img { max-width: 100%; max-height: 60vh; border-radius: 14px; object-fit: contain; }
+    .entry-viewer-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+    .entry-viewer-actions .log-btn { width: auto; padding: 10px 16px; }
   </style>
 </head>
 <body>
@@ -1330,6 +1356,8 @@
       <div class="helena-section" id="helenaMilestones"></div>
       <div class="helena-section" id="helenaFacts"></div>
       <input type="file" id="helenaPhotoInput" accept="image/*" style="display:none">
+      <input type="file" id="entryPhotoInput" accept="image/*" style="display:none">
+      <div class="entry-viewer" id="entryPhotoViewer" style="display:none"></div>
     </div>
 
   </main>
@@ -1416,6 +1444,7 @@
   let growthFormOpen    = false;
   let milestoneFormOpen = false;
   let profileFormState  = null;
+  let entryPhotoTarget  = null;
 
   // ── Formatting helpers ──
   function formatTime(dateStr) {
@@ -2592,6 +2621,9 @@
     const totalOz = feeds.reduce((s, f) => s + parseFloat(f.amount_oz), 0);
     const formulaOz = feeds.filter(f => f.feed_type === 'formula').reduce((s, f) => s + parseFloat(f.amount_oz), 0);
     const formulaPct = totalOz > 0 ? Math.round((formulaOz / totalOz) * 100) : 0;
+    const breastOz = totalOz - formulaOz;
+    const oz1 = n => (n % 1 === 0 ? n : Math.round(n * 10) / 10);
+    const totalOzLabel = oz1(totalOz), formulaOzLabel = oz1(formulaOz), breastOzLabel = oz1(breastOz);
     const avgOzDay = Math.round(totalOz / numDays * 10) / 10;
     const avgFeedsDay = Math.round(feeds.length / numDays * 10) / 10;
     const avgDiapersDay = Math.round(diapers.length / numDays * 10) / 10;
@@ -2601,6 +2633,10 @@
       <div class="kpi-card">
         <div class="kpi-card-title">Summary · ${numDays} day${numDays !== 1 ? 's' : ''} ♡</div>
         <div class="kpi-grid">
+          <div class="kpi-item">
+            <div class="kpi-label">Total oz</div>
+            <div class="kpi-value">${totalOzLabel}</div>
+          </div>
           <div class="kpi-item">
             <div class="kpi-label">Avg oz/day</div>
             <div class="kpi-value">${avgOzDay}</div>
@@ -2644,7 +2680,9 @@
       const bars = dayData.map(d => {
         const fH = maxDayOz > 0 ? Math.max(0, Math.round((d.fOz / maxDayOz) * maxBarH)) : 0;
         const bH = maxDayOz > 0 ? Math.max(0, Math.round((d.bOz / maxDayOz) * maxBarH)) : 0;
+        const totalLabel = d.total > 0 ? oz1(d.total) : '';
         return `<div class="bar-stack">
+          <div class="bar-total">${totalLabel}</div>
           <div class="bar-formula" style="height:${fH}px"></div>
           <div class="bar-breast" style="height:${bH}px"></div>
         </div>`;
@@ -2661,8 +2699,8 @@
           <div class="bar-chart">${bars}</div>
           <div class="chart-axis">${labels}</div>
           <div class="chart-legend">
-            <div class="legend-item"><div class="legend-dot" style="background:var(--rose)"></div><span class="legend-text">Formula</span></div>
-            <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div><span class="legend-text">Breast milk</span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--rose)"></div><span class="legend-text">Formula · ${formulaOzLabel} oz</span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div><span class="legend-text">Breast · ${breastOzLabel} oz</span></div>
           </div>
         </div>`;
     }
@@ -2814,18 +2852,28 @@
   }
 
   // Filled in by later tasks:
-  function growthSvg(values, color) {
-    if (values.length < 2) return '';
-    const pts = sparklinePoints(values, 100, 50).map(p => p.x + ',' + (p.y + 5));
-    return `<svg class="growth-svg" viewBox="0 0 100 60" preserveAspectRatio="none">
-      <polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="2"
-        vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"></polyline>
+  function growthSvg(series, color, unit) {
+    if (series.length < 2) return '';
+    const left = 36, right = 300, top = 24, bottom = 68;
+    const pts = sparklinePoints(series.map(s => s.val), right - left, bottom - top).map(p => ({ x: p.x + left, y: p.y + top }));
+    const poly = pts.map(p => p.x + ',' + p.y).join(' ');
+    const dots = pts.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3" fill="${color}"></circle>`).join('');
+    const first = pts[0], last = pts[pts.length - 1];
+    const dShort = on => new Date(on + 'T00:00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+    const F = 'font-family="DM Sans, sans-serif"';
+    return `<svg class="growth-svg" viewBox="0 0 320 96">
+      <polyline points="${poly}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"></polyline>
+      ${dots}
+      <text x="${first.x}" y="${Math.max(12, first.y - 9)}" text-anchor="start" font-size="11" fill="#f5f0ee" ${F}>${series[0].val}</text>
+      <text x="${last.x}" y="${Math.max(12, last.y - 9)}" text-anchor="end" font-size="11" fill="${color}" ${F}>${series[series.length - 1].val}${unit ? ' ' + unit : ''}</text>
+      <text x="${left}" y="90" text-anchor="start" font-size="9" fill="#888" ${F}>${dShort(series[0].on)}</text>
+      <text x="${right}" y="90" text-anchor="end" font-size="9" fill="#888" ${F}>${dShort(series[series.length - 1].on)}</text>
     </svg>`;
   }
 
-  function growthChartCard(title, latestLabel, values, color) {
-    const body = values.length >= 2 ? growthSvg(values, color)
-      : `<div class="growth-empty">${values.length === 1 ? 'Add another measurement to see the trend.' : 'No measurements yet.'}</div>`;
+  function growthChartCard(title, latestLabel, series, color, unit) {
+    const body = series.length >= 2 ? growthSvg(series, color, unit)
+      : `<div class="growth-empty">${series.length === 1 ? 'Add another measurement to see the trend.' : 'No measurements yet.'}</div>`;
     return `<div class="growth-chart-card">
       <div class="growth-chart-head"><div class="growth-chart-title">${title}</div><div class="growth-chart-latest">${esc(latestLabel)}</div></div>
       ${body}
@@ -2843,15 +2891,15 @@
     const p = babyProfile;
 
     const weightSeries = [], heightSeries = [];
-    if (p.birth_weight_kg != null) weightSeries.push(parseFloat(p.birth_weight_kg));
-    if (p.birth_length_cm != null) heightSeries.push(parseFloat(p.birth_length_cm));
+    if (p.birth_weight_kg != null) weightSeries.push({ val: parseFloat(p.birth_weight_kg), on: p.birth_date });
+    if (p.birth_length_cm != null) heightSeries.push({ val: parseFloat(p.birth_length_cm), on: p.birth_date });
     growthList.forEach(g => {
-      if (g.weight_kg != null) weightSeries.push(parseFloat(g.weight_kg));
-      if (g.height_cm != null) heightSeries.push(parseFloat(g.height_cm));
+      if (g.weight_kg != null) weightSeries.push({ val: parseFloat(g.weight_kg), on: g.measured_on });
+      if (g.height_cm != null) heightSeries.push({ val: parseFloat(g.height_cm), on: g.measured_on });
     });
 
-    const latestW = weightSeries.length ? weightSeries[weightSeries.length - 1] : null;
-    const latestH = heightSeries.length ? heightSeries[heightSeries.length - 1] : null;
+    const latestW = weightSeries.length ? weightSeries[weightSeries.length - 1].val : null;
+    const latestH = heightSeries.length ? heightSeries[heightSeries.length - 1].val : null;
     const birthW = p.birth_weight_kg != null ? parseFloat(p.birth_weight_kg) : null;
     let wDelta = '';
     if (latestW != null && birthW != null && weightSeries.length > 1) {
@@ -2867,8 +2915,8 @@
         <div class="helena-stat"><div class="helena-stat-val">${milestonesList.length}</div><div class="helena-stat-label">Milestones</div></div>
       </div>`;
 
-    const weightCard = growthChartCard('Weight', latestW != null ? latestW + ' kg' : '', weightSeries, '#e8748a');
-    const heightCard = growthChartCard('Length', latestH != null ? latestH + ' cm' : '', heightSeries, '#c47adb');
+    const weightCard = growthChartCard('Weight', latestW != null ? latestW + ' kg' : '', weightSeries, '#e8748a', 'kg');
+    const heightCard = growthChartCard('Length', latestH != null ? latestH + ' cm' : '', heightSeries, '#c47adb', 'cm');
 
     const sorted = growthList.slice().sort((a, b) => (a.measured_on < b.measured_on ? 1 : -1));
     const rows = sorted.map(g => {
@@ -2889,6 +2937,7 @@
       if (g.height_cm != null) parts.push(g.height_cm + ' cm');
       return `
       <div class="list-item" data-id="${g.id}">
+        ${entryThumb('growth', g)}
         <div class="item-detail" style="margin-left:0;font-size:13px;color:var(--text);">${shortDateLabel(g.measured_on)}</div>
         <div class="item-value">${parts.join(' · ')}</div>
         <div class="item-actions">
@@ -2937,8 +2986,9 @@
     if (!error) { editingGrowthId = null; await fetchHelena(); }
   }
   async function deleteGrowth(id) {
+    const row = findEntry('growth', id);
     const { error } = await client.from('growth_measurements').delete().eq('id', id);
-    if (!error) { if (editingGrowthId === id) editingGrowthId = null; await fetchHelena(); }
+    if (!error) { if (row && row.photo_path) deleteEntryStorage(row.photo_path); if (editingGrowthId === id) editingGrowthId = null; await fetchHelena(); }
   }
   function renderMilestones() {
     const el = document.getElementById('helenaMilestones');
@@ -2960,6 +3010,7 @@
       }
       return `
       <div class="list-item" data-id="${m.id}">
+        ${entryThumb('milestones', m)}
         <div style="flex:1;min-width:0;">
           <div style="font-size:14px;color:var(--text);">${esc(m.title)}</div>
           <div class="med-summary">${shortDateLabel(m.achieved_on)}${m.note ? ' · ' + esc(m.note) : ''}</div>
@@ -3008,8 +3059,9 @@
     if (!error) { editingMilestoneId = null; await fetchHelena(); }
   }
   async function deleteMilestone(id) {
+    const row = findEntry('milestones', id);
     const { error } = await client.from('milestones').delete().eq('id', id);
-    if (!error) { if (editingMilestoneId === id) editingMilestoneId = null; await fetchHelena(); }
+    if (!error) { if (row && row.photo_path) deleteEntryStorage(row.photo_path); if (editingMilestoneId === id) editingMilestoneId = null; await fetchHelena(); }
   }
   function renderProfileFacts() {
     const el = document.getElementById('helenaFacts');
@@ -3146,6 +3198,108 @@
     e.target.value = '';
   });
 
+  // ── Entry photos (milestones & growth measurements, via Supabase Storage) ──
+  function entryPhotoPath(sessionKey, kind, id, token) {
+    return `${sessionKey}/${kind}/${id}-${token}.jpg`;
+  }
+  function growthValueLabel(g) {
+    const p = [];
+    if (g.weight_kg != null) p.push(g.weight_kg + ' kg');
+    if (g.height_cm != null) p.push(g.height_cm + ' cm');
+    return p.join('  ·  ');
+  }
+  function kindInfo(kind) {
+    return kind === 'growth' ? { table: 'growth_measurements' } : { table: 'milestones' };
+  }
+  function findEntry(kind, id) {
+    return (kind === 'growth' ? growthList : milestonesList).find(x => x.id === id);
+  }
+  function entryPhotoUrl(path) {
+    return client.storage.from('baby-photos').getPublicUrl(path).data.publicUrl;
+  }
+  function downscaleToBlob(file, max, quality) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          const scale = Math.min(1, max / Math.max(img.width, img.height));
+          const cv = document.createElement('canvas');
+          cv.width = Math.round(img.width * scale);
+          cv.height = Math.round(img.height * scale);
+          cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+          cv.toBlob(b => b ? resolve(b) : reject(new Error('toBlob failed')), 'image/jpeg', quality);
+        };
+        img.onerror = reject; img.src = e.target.result;
+      };
+      reader.onerror = reject; reader.readAsDataURL(file);
+    });
+  }
+  async function uploadEntryPhoto(kind, id, file) {
+    try {
+      const blob = await downscaleToBlob(file, 1280, 0.85);
+      const token = Date.now().toString(36);
+      const path = entryPhotoPath(getSessionKey(), kind, id, token);
+      const { error } = await client.storage.from('baby-photos').upload(path, blob, { upsert: true, contentType: 'image/jpeg' });
+      if (error) { console.warn('photo upload failed:', error.message); return null; }
+      return path;
+    } catch (e) { console.warn('photo process failed:', e); return null; }
+  }
+  async function deleteEntryStorage(path) {
+    if (!path) return;
+    try { await client.storage.from('baby-photos').remove([path]); } catch (e) {}
+  }
+  function pickEntryPhoto(kind, id) {
+    entryPhotoTarget = { kind, id };
+    document.getElementById('entryPhotoInput').click();
+  }
+  function entryThumb(kind, row) {
+    if (row.photo_path) {
+      return `<img class="entry-thumb" src="${entryPhotoUrl(row.photo_path)}" loading="lazy" alt="" onclick="openEntryViewer('${kind}', ${row.id})">`;
+    }
+    return `<button class="entry-thumb-add" onclick="pickEntryPhoto('${kind}', ${row.id})" aria-label="Add photo">📷</button>`;
+  }
+  document.getElementById('entryPhotoInput').addEventListener('change', async e => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file || !entryPhotoTarget) return;
+    const { kind, id } = entryPhotoTarget; entryPhotoTarget = null;
+    const row = findEntry(kind, id);
+    const oldPath = row ? row.photo_path : null;
+    const newPath = await uploadEntryPhoto(kind, id, file);
+    if (!newPath) return;
+    const { error } = await client.from(kindInfo(kind).table).update({ photo_path: newPath }).eq('id', id);
+    if (!error) { if (oldPath && oldPath !== newPath) deleteEntryStorage(oldPath); closeEntryViewer(); await fetchHelena(); }
+  });
+
+  // ── Entry photo viewer (lightbox) ──
+  function openEntryViewer(kind, id) {
+    const row = findEntry(kind, id);
+    if (!row || !row.photo_path) return;
+    const el = document.getElementById('entryPhotoViewer');
+    el.innerHTML = `
+      <div class="entry-viewer-backdrop" onclick="closeEntryViewer()"></div>
+      <div class="entry-viewer-card">
+        <img src="${entryPhotoUrl(row.photo_path)}" alt="">
+        <div class="entry-viewer-actions">
+          <button class="log-btn" onclick="shareEntry('${kind}', ${id})">Share ♡</button>
+          <button class="log-btn btn-secondary" onclick="pickEntryPhoto('${kind}', ${id})">Replace</button>
+          <button class="log-btn btn-secondary" onclick="removeEntryPhoto('${kind}', ${id})">Remove</button>
+          <button class="log-btn btn-secondary" onclick="closeEntryViewer()">Close</button>
+        </div>
+      </div>`;
+    el.style.display = 'flex';
+  }
+  function closeEntryViewer() {
+    const el = document.getElementById('entryPhotoViewer');
+    if (el) { el.style.display = 'none'; el.innerHTML = ''; }
+  }
+  async function removeEntryPhoto(kind, id) {
+    const row = findEntry(kind, id);
+    const { error } = await client.from(kindInfo(kind).table).update({ photo_path: null }).eq('id', id);
+    if (!error) { if (row && row.photo_path) deleteEntryStorage(row.photo_path); closeEntryViewer(); await fetchHelena(); }
+  }
+
   // ── Export / share keepsake card ──
   function loadImageEl(src) {
     return new Promise(resolve => { const i = new Image(); i.onload = () => resolve(i); i.onerror = () => resolve(null); i.src = src; });
@@ -3231,6 +3385,60 @@
       a.download = 'helena.png';
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }, 'image/png');
+  }
+
+  // ── Per-entry share card ──
+  function loadImageCORS(src) {
+    return new Promise(resolve => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => resolve(i); i.onerror = () => resolve(null); i.src = src; });
+  }
+  function roundRectPath(ctx, x, y, w, h, r) {
+    ctx.beginPath(); ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+  async function drawEntryKeepsakeCanvas(kind, row) {
+    if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (e) {} }
+    const W = 1080, H = 1350;
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    const ctx = cv.getContext('2d');
+    const grad = ctx.createLinearGradient(0, 0, 0, H); grad.addColorStop(0, '#1a1012'); grad.addColorStop(1, '#0a0a0a');
+    ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
+    ctx.textAlign = 'center';
+    let imgBottom = 150;
+    if (row.photo_path) {
+      const img = await loadImageCORS(entryPhotoUrl(row.photo_path));
+      if (img) {
+        const pw = 880, ph = 880, px = (W - pw) / 2, py = 120, rad = 40;
+        ctx.save(); roundRectPath(ctx, px, py, pw, ph, rad); ctx.clip();
+        const side = Math.min(img.width, img.height), sx = (img.width - side) / 2, sy = (img.height - side) / 2;
+        ctx.drawImage(img, sx, sy, side, side, px, py, pw, ph); ctx.restore();
+        ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(232,116,138,0.5)'; roundRectPath(ctx, px, py, pw, ph, rad); ctx.stroke();
+        imgBottom = py + ph;
+      }
+    }
+    const title = kind === 'growth' ? growthValueLabel(row) : row.title;
+    ctx.fillStyle = '#f5f0ee'; ctx.font = '66px "DM Serif Display", serif';
+    ctx.fillText(title, W / 2, imgBottom + 110);
+    const dateStr = kind === 'growth' ? row.measured_on : row.achieved_on;
+    let y = imgBottom + 172;
+    if (babyProfile && babyProfile.birth_date) {
+      const age = computeAge(babyProfile.birth_date, new Date(dateStr + 'T00:00:00'));
+      ctx.fillStyle = '#e8748a'; ctx.font = '44px "DM Sans", sans-serif'; ctx.fillText(formatAge(age), W / 2, y); y += 58;
+    }
+    ctx.fillStyle = '#9a9a9a'; ctx.font = '34px "DM Sans", sans-serif'; ctx.fillText(shortDateLabel(dateStr), W / 2, y);
+    ctx.fillStyle = 'rgba(232,116,138,0.7)'; ctx.font = '40px "DM Sans", sans-serif'; ctx.fillText('♡', W / 2, H - 60);
+    return cv;
+  }
+  async function shareEntry(kind, id) {
+    const row = findEntry(kind, id); if (!row) return;
+    const cv = await drawEntryKeepsakeCanvas(kind, row);
+    cv.toBlob(async blob => {
+      if (!blob) return;
+      const file = new File([blob], 'helena-moment.png', { type: 'image/png' });
+      try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: 'Helena ♡' }); return; } } catch (e) {}
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'helena-moment.png';
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     }, 'image/png');
   }
 
