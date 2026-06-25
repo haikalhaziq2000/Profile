@@ -1265,7 +1265,7 @@
       <div class="feed-section">
         <div class="feed-summary">
           <span class="feed-total-oz" id="feedTotalOz">—<span class="unit">oz</span></span>
-          <span class="feed-total-label" id="feedTotalLabel">Helena's feedings today</span>
+          <span class="feed-total-label" id="feedTotalLabel">Amaya's feedings today</span>
         </div>
         <div class="type-toggles" id="feedTypeToggles">
           <button class="type-toggle active" data-type="formula">
@@ -1408,7 +1408,7 @@
       <svg class="tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
         <path d="M12 21s-7-4.5-9.5-9C1 9 2.5 5.5 6 5.5c2 0 3.2 1.2 4 2.3.8-1.1 2-2.3 4-2.3 3.5 0 5 3.5 3.5 6.5C19 16.5 12 21 12 21z"/>
       </svg>
-      Helena
+      Amaya
     </button>
   </nav>
 
@@ -1768,7 +1768,7 @@
     document.getElementById('feedTotalOz').innerHTML =
       `${totalOz % 1 === 0 ? totalOz : totalOz.toFixed(1)}<span class="unit">oz</span>`;
     document.getElementById('feedTotalLabel').textContent =
-      count === 0 ? "Helena's feedings today" : `across ${count} feeding${count !== 1 ? 's' : ''}`;
+      count === 0 ? `${babyName()}'s feedings today` : `across ${count} feeding${count !== 1 ? 's' : ''}`;
 
     const list = document.getElementById('feedList');
 
@@ -1776,7 +1776,7 @@
       list.innerHTML = `
         <div class="empty-state">
           <div class="empty-icon">🍼</div>
-          <div class="empty-text">Helena hasn't been fed yet today.<br>Log her first feeding above.</div>
+          <div class="empty-text">${babyName()} hasn't been fed yet today.<br>Log her first feeding above.</div>
         </div>`;
       return;
     }
@@ -1812,7 +1812,7 @@
       </div>`;
     }).join('');
 
-    list.innerHTML = `<div class="section-label">Helena's feedings today ♡</div>` + items;
+    list.innerHTML = `<div class="section-label">${babyName()}'s feedings today ♡</div>` + items;
   }
 
   // ══════════════════════════════════
@@ -1998,7 +1998,7 @@
       list.innerHTML = `
         <div class="empty-state">
           <div class="empty-icon">🧷</div>
-          <div class="empty-text">No diaper changes logged yet today.<br>Log Helena's first change above.</div>
+          <div class="empty-text">No diaper changes logged yet today.<br>Log ${babyName()}'s first change above.</div>
         </div>`;
       return;
     }
@@ -2035,7 +2035,7 @@
       </div>`;
     }).join('');
 
-    list.innerHTML = `<div class="section-label">Helena's diaper changes today ♡</div>` + items;
+    list.innerHTML = `<div class="section-label">${babyName()}'s diaper changes today ♡</div>` + items;
   }
 
   // ══════════════════════════════════
@@ -2217,7 +2217,7 @@
       </div>`;
     }).join('');
 
-    el.innerHTML = `<div class="section-label">Helena's meds today ♡</div>` + items;
+    el.innerHTML = `<div class="section-label">${babyName()}'s meds today ♡</div>` + items;
   }
 
   function editMedDose(id) {
@@ -2817,9 +2817,16 @@
     renderProfileFacts();
   }
 
+  // Casual call name (last word of the full name) — full name "Helena Amaya"
+  // stays intact in the title/header/profile; everyday copy uses "Amaya".
+  function babyName() {
+    const full = babyProfile && babyProfile.name && babyProfile.name.trim();
+    if (!full) return 'Amaya';
+    const parts = full.split(/\s+/);
+    return parts[parts.length - 1];
+  }
   function helenaInitial() {
-    const n = (babyProfile && babyProfile.name) ? babyProfile.name.trim() : 'H';
-    return n ? n[0].toUpperCase() : 'H';
+    return babyName().charAt(0).toUpperCase();
   }
 
   function bornLine(p) {
@@ -2839,8 +2846,8 @@
       el.innerHTML = `
         <div class="helena-cta">
           <div class="helena-photo-ph" style="margin:0 auto 14px;">♡</div>
-          <div class="empty-text">Set up Helena's profile to see her age and start her keepsake.</div>
-          <button class="helena-add-btn" style="margin-top:14px;" onclick="openProfileForm()">+ Set up Helena's profile</button>
+          <div class="empty-text">Set up ${babyName()}'s profile to see her age and start her keepsake.</div>
+          <button class="helena-add-btn" style="margin-top:14px;" onclick="openProfileForm()">+ Set up ${babyName()}'s profile</button>
         </div>`;
       return;
     }
@@ -3125,7 +3132,7 @@
     const seg = (active, s, label) => `<button type="button" class="med-seg-btn ${active ? 'active' : ''}" onclick="setProfileSex('${s}')">${label}</button>`;
     const photo = f.photo ? `<img src="${f.photo}" alt="">` : `<div class="ph">${esc(helenaInitial())}</div>`;
     el.innerHTML = `
-      <div class="section-label">${babyProfile ? 'Edit profile' : "Helena's profile"}</div>
+      <div class="section-label">${babyProfile ? 'Edit profile' : babyName() + "'s profile"}</div>
       <div class="helena-form">
         <div class="helena-form-photo">
           ${photo}
@@ -3380,16 +3387,16 @@
     const cv = await drawKeepsakeCanvas();
     cv.toBlob(async blob => {
       if (!blob) return;
-      const file = new File([blob], 'helena.png', { type: 'image/png' });
+      const file = new File([blob], 'amaya.png', { type: 'image/png' });
       try {
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], title: 'Helena ♡' });
+          await navigator.share({ files: [file], title: babyName() + ' ♡' });
           return;
         }
       } catch (e) { /* fall through to download */ }
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = 'helena.png';
+      a.download = 'amaya.png';
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     }, 'image/png');
@@ -3442,9 +3449,9 @@
     const cv = await drawEntryKeepsakeCanvas(kind, row);
     cv.toBlob(async blob => {
       if (!blob) return;
-      const file = new File([blob], 'helena-moment.png', { type: 'image/png' });
-      try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: 'Helena ♡' }); return; } } catch (e) {}
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'helena-moment.png';
+      const file = new File([blob], 'amaya-moment.png', { type: 'image/png' });
+      try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: babyName() + ' ♡' }); return; } } catch (e) {}
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'amaya-moment.png';
       document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     }, 'image/png');
   }
