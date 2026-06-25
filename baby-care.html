@@ -1137,6 +1137,80 @@
 
     /* meds timeline dot */
     .timeline-dot.med { background: #d9a441; }
+
+    /* datetime-local edit picker (feed/diaper/meds) — takes its own row */
+    .list-item.editing { flex-wrap: wrap; }
+    .edit-dt-input {
+      flex: 1 0 100%;
+      width: 100%;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      padding: 7px 9px;
+      margin-bottom: 6px;
+    }
+
+    /* ── Helena tab ── */
+    .helena-hero {
+      margin: 16px 16px 6px;
+      padding: 22px 18px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(232,116,138,0.16), rgba(196,122,219,0.06));
+      border: 1px solid rgba(232,116,138,0.22);
+      text-align: center;
+    }
+    .helena-photo, .helena-photo-ph {
+      width: 88px; height: 88px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin: 0 auto 12px;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid rgba(232,116,138,0.5);
+      cursor: pointer;
+      background: var(--surface2);
+    }
+    .helena-photo-ph { font-family: 'DM Serif Display', serif; font-size: 38px; color: var(--rose); }
+    .helena-name { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--text); }
+    .helena-age { font-family: 'DM Serif Display', serif; font-size: 30px; color: var(--rose); margin-top: 6px; line-height: 1.1; }
+    .helena-born { font-size: 12px; color: var(--muted2); margin-top: 8px; }
+    .helena-daysold { font-size: 11px; color: var(--muted); margin-top: 2px; letter-spacing: 0.04em; }
+    .helena-share {
+      margin-top: 14px; padding: 9px 18px; border-radius: 20px;
+      border: 1px solid var(--rose); background: var(--rose-soft); color: var(--rose);
+      font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; -webkit-appearance: none;
+    }
+    .helena-section { padding: 6px 16px 0; }
+    .helena-section:last-of-type { padding-bottom: 24px; }
+    .helena-stat-row { display: flex; gap: 8px; margin: 10px 0 4px; }
+    .helena-stat { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 10px; text-align: center; }
+    .helena-stat-val { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--text); }
+    .helena-stat-val .delta { font-size: 11px; margin-left: 3px; }
+    .delta.up { color: #6cc070; }
+    .delta.down { color: #e0a23c; }
+    .helena-stat-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
+    .growth-chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 10px; }
+    .growth-chart-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+    .growth-chart-title { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+    .growth-chart-latest { font-family: 'DM Serif Display', serif; font-size: 16px; color: var(--rose); }
+    .growth-svg { width: 100%; height: 60px; display: block; overflow: visible; }
+    .growth-empty { font-size: 11px; color: var(--muted); padding: 6px 0; }
+    .facts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 6px 0 10px; }
+    .fact { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+    .fact-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3px; }
+    .fact-val { font-size: 14px; color: var(--text); }
+    .helena-add-btn {
+      width: 100%; padding: 11px; border-radius: 12px;
+      border: 1px dashed rgba(232,116,138,0.45); background: transparent; color: var(--rose);
+      font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; -webkit-appearance: none; margin-top: 4px;
+    }
+    .helena-cta { text-align: center; padding: 28px 18px; }
+    .helena-form { padding: 4px 0 10px; }
+    .helena-form-photo { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .helena-form-photo img, .helena-form-photo .ph {
+      width: 56px; height: 56px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+      border: 1px solid var(--border); background: var(--surface2);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'DM Serif Display', serif; color: var(--rose);
+    }
   </style>
 </head>
 <body>
@@ -1249,6 +1323,15 @@
       </div>
     </div>
 
+    <!-- Helena tab -->
+    <div class="tab-panel" data-tab="helena">
+      <div class="helena-hero" id="helenaHero"></div>
+      <div class="helena-section" id="helenaGrowth"></div>
+      <div class="helena-section" id="helenaMilestones"></div>
+      <div class="helena-section" id="helenaFacts"></div>
+      <input type="file" id="helenaPhotoInput" accept="image/*" style="display:none">
+    </div>
+
   </main>
 
   <!-- Tab bar -->
@@ -1286,6 +1369,12 @@
       </svg>
       Trends
     </button>
+    <button class="tab-btn" data-tab="helena">
+      <svg class="tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M12 21s-7-4.5-9.5-9C1 9 2.5 5.5 6 5.5c2 0 3.2 1.2 4 2.3.8-1.1 2-2.3 4-2.3 3.5 0 5 3.5 3.5 6.5C19 16.5 12 21 12 21z"/>
+      </svg>
+      Helena
+    </button>
   </nav>
 
 </div>
@@ -1318,6 +1407,15 @@
   let medsInterval    = null;
   let editingMedDoseId = null;
   let medFormState    = null;
+  let viewDayKey      = null;
+  let babyProfile       = null;
+  let growthList        = [];
+  let milestonesList    = [];
+  let editingGrowthId   = null;
+  let editingMilestoneId = null;
+  let growthFormOpen    = false;
+  let milestoneFormOpen = false;
+  let profileFormState  = null;
 
   // ── Formatting helpers ──
   function formatTime(dateStr) {
@@ -1336,6 +1434,51 @@
     const [h, m] = newTimeValue.split(':').map(Number);
     d.setHours(h, m, 0, 0);
     return d.toISOString();
+  }
+
+  // For <input type="datetime-local"> edit controls: local "YYYY-MM-DDTHH:MM"
+  // <-> UTC ISO. Lets an entry be moved to any date/time, including a previous
+  // day (e.g. logging a feed you forgot from last night).
+  function getLocalDateTimeValue(dateStr) {
+    const d = new Date(dateStr);
+    const pad = n => String(n).padStart(2, '0');
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+           'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+  function dtLocalToISO(value) {
+    return new Date(value).toISOString();
+  }
+
+  // ── Helena dashboard (pure) ──
+  function computeAge(birthDateStr, now) {
+    const b = new Date(birthDateStr + 'T00:00:00');
+    const bMid = new Date(b.getFullYear(), b.getMonth(), b.getDate());
+    const nMid = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if (bMid > nMid) return { years: 0, months: 0, days: 0, totalDays: 0 };
+    let years = nMid.getFullYear() - bMid.getFullYear();
+    let months = nMid.getMonth() - bMid.getMonth();
+    let days = nMid.getDate() - bMid.getDate();
+    if (days < 0) { months--; days += new Date(nMid.getFullYear(), nMid.getMonth(), 0).getDate(); }
+    if (months < 0) { years--; months += 12; }
+    const totalDays = Math.round((nMid - bMid) / 86400000);
+    return { years, months, days, totalDays };
+  }
+  function formatAge(age) {
+    const parts = [];
+    if (age.years > 0) parts.push(age.years + ' year' + (age.years !== 1 ? 's' : ''));
+    if (age.years > 0 || age.months > 0) parts.push(age.months + ' month' + (age.months !== 1 ? 's' : ''));
+    parts.push(age.days + ' day' + (age.days !== 1 ? 's' : ''));
+    return parts.join(', ');
+  }
+  function sparklinePoints(values, w, h) {
+    const n = values.length;
+    if (n === 0) return [];
+    const min = Math.min(...values), max = Math.max(...values);
+    const range = max - min;
+    return values.map((v, i) => ({
+      x: Math.round((n === 1 ? w / 2 : (i / (n - 1)) * w) * 100) / 100,
+      y: Math.round((range === 0 ? h / 2 : h - ((v - min) / range) * h) * 100) / 100,
+    }));
   }
 
   function formatDateParts(dateStr) {
@@ -1458,6 +1601,7 @@
       document.querySelector(`.tab-panel[data-tab="${btn.dataset.tab}"]`).classList.add('active');
       if (btn.dataset.tab === 'trends') fetchTrends();
       if (btn.dataset.tab === 'meds') fetchMeds();
+      if (btn.dataset.tab === 'helena') fetchHelena();
     });
   });
 
@@ -1540,7 +1684,7 @@
     const feed = todayFeedings.find(f => f.id === id);
     if (!feed) return;
 
-    const newTs = buildNewTimestamp(feed.fed_at, timeInput.value);
+    const newTs = dtLocalToISO(timeInput.value);
     const newOz = parseFloat(ozInput.value);
     if (isNaN(newOz) || newOz < 0.5 || newOz > 20) return;
 
@@ -1580,8 +1724,10 @@
 
   // ── Render feed tab ──
   function renderFeedTab() {
-    const totalOz = todayFeedings.reduce((sum, f) => sum + parseFloat(f.amount_oz), 0);
-    const count = todayFeedings.length;
+    const today = localDayKey(new Date().toISOString());
+    const feedsToday = todayFeedings.filter(f => localDayKey(f.fed_at) === today);
+    const totalOz = feedsToday.reduce((sum, f) => sum + parseFloat(f.amount_oz), 0);
+    const count = feedsToday.length;
 
     document.getElementById('feedTotalOz').innerHTML =
       `${totalOz % 1 === 0 ? totalOz : totalOz.toFixed(1)}<span class="unit">oz</span>`;
@@ -1599,11 +1745,11 @@
       return;
     }
 
-    const items = todayFeedings.map(f => {
+    const items = feedsToday.map(f => {
       if (f.id === editingFeedId) {
         return `
-        <div class="list-item" data-id="${f.id}">
-          <input type="time" class="edit-time-input" id="edit-feed-time-${f.id}" value="${getLocalTimeValue(f.fed_at)}"
+        <div class="list-item editing" data-id="${f.id}">
+          <input type="datetime-local" class="edit-time-input edit-dt-input" id="edit-feed-time-${f.id}" value="${getLocalDateTimeValue(f.fed_at)}"
             onkeydown="if(event.key==='Enter')saveFeeding(${f.id});if(event.key==='Escape')cancelFeedEdit()">
           <div id="edit-feed-types-${f.id}" class="edit-type-toggles" style="margin-left:6px;">
             <button class="edit-type-btn ${f.feed_type === 'formula' ? 'active' : ''}" data-type="formula"
@@ -1648,6 +1794,7 @@
 
   // ── Countdown logic ──
   function updateCountdown() {
+    refreshForNewDayIfNeeded();
     const timeEl     = document.getElementById('countdownTime');
     const labelEl    = document.getElementById('countdownLabel');
     const lastTimeEl = document.getElementById('countdownLastTime');
@@ -1782,7 +1929,7 @@
     const diaper = todayDiapers.find(d => d.id === id);
     if (!diaper) return;
 
-    const newTs = buildNewTimestamp(diaper.changed_at, timeInput.value);
+    const newTs = dtLocalToISO(timeInput.value);
     const newNotes = notesInput ? (notesInput.value.trim() || null) : diaper.notes;
 
     const activeType = document.querySelector(`#edit-diaper-types-${id} .edit-type-btn.active`);
@@ -1807,7 +1954,9 @@
   // ── Render diaper tab ──
   function renderDiaperTab() {
     const list  = document.getElementById('diaperList');
-    const count = todayDiapers.length;
+    const today = localDayKey(new Date().toISOString());
+    const diapersToday = todayDiapers.filter(d => localDayKey(d.changed_at) === today);
+    const count = diapersToday.length;
 
     if (count === 0) {
       list.innerHTML = `
@@ -1818,11 +1967,11 @@
       return;
     }
 
-    const items = todayDiapers.map(d => {
+    const items = diapersToday.map(d => {
       if (d.id === editingDiaperId) {
         return `
-        <div class="list-item" data-id="${d.id}">
-          <input type="time" class="edit-time-input" id="edit-diaper-time-${d.id}" value="${getLocalTimeValue(d.changed_at)}"
+        <div class="list-item editing" data-id="${d.id}">
+          <input type="datetime-local" class="edit-time-input edit-dt-input" id="edit-diaper-time-${d.id}" value="${getLocalDateTimeValue(d.changed_at)}"
             onkeydown="if(event.key==='Enter')saveDiaper(${d.id});if(event.key==='Escape')cancelDiaperEdit()">
           <div id="edit-diaper-types-${d.id}" class="edit-type-toggles" style="margin-left:6px;">
             <button class="edit-type-btn ${d.diaper_type === 'wet' ? 'active' : ''}" data-type="wet"
@@ -2003,8 +2152,8 @@
     const items = todays.map(d => {
       if (d.id === editingMedDoseId && d.status === 'given') {
         return `
-        <div class="list-item" data-id="${d.id}">
-          <input type="time" class="edit-time-input" id="edit-meddose-time-${d.id}" value="${getLocalTimeValue(d.given_at)}"
+        <div class="list-item editing" data-id="${d.id}">
+          <input type="datetime-local" class="edit-time-input edit-dt-input" id="edit-meddose-time-${d.id}" value="${getLocalDateTimeValue(d.given_at)}"
             onkeydown="if(event.key==='Enter')saveMedDose(${d.id});if(event.key==='Escape')cancelMedDoseEdit()">
           <input type="number" class="edit-oz-input" id="edit-meddose-amt-${d.id}" value="${d.dose_amount}" step="0.5" min="0" style="margin-left:6px;">
           <select class="med-select" id="edit-meddose-unit-${d.id}" style="margin-left:6px;width:auto;flex:0 0 80px;padding:6px 8px;font-size:13px;">
@@ -2056,7 +2205,7 @@
     if (!timeInput || !amtInput) return;
     const dose = medDoses.find(d => d.id === id);
     if (!dose || !dose.given_at) return;
-    const newTs = buildNewTimestamp(dose.given_at, timeInput.value);
+    const newTs = dtLocalToISO(timeInput.value);
     const newAmt = parseFloat(amtInput.value);
     if (isNaN(newAmt) || newAmt <= 0) return;
     const newUnit = unitInput ? unitInput.value : dose.dose_unit;
@@ -2601,16 +2750,524 @@
   }
 
   // ══════════════════════════════════
+  // HELENA TAB
+  // ══════════════════════════════════
+
+  async function fetchHelena() {
+    const [pRes, gRes, mRes] = await Promise.all([
+      client.from('baby_profile').select('*').eq('session_key', getSessionKey()).maybeSingle(),
+      client.from('growth_measurements').select('*').eq('session_key', getSessionKey()).order('measured_on', { ascending: true }),
+      client.from('milestones').select('*').eq('session_key', getSessionKey()).order('achieved_on', { ascending: false }),
+    ]);
+    babyProfile = pRes.data || null;
+    growthList = gRes.data || [];
+    milestonesList = mRes.data || [];
+    renderHelenaTab();
+  }
+
+  function renderHelenaTab() {
+    renderHelenaHero();
+    renderGrowth();
+    renderMilestones();
+    renderProfileFacts();
+  }
+
+  function helenaInitial() {
+    const n = (babyProfile && babyProfile.name) ? babyProfile.name.trim() : 'H';
+    return n ? n[0].toUpperCase() : 'H';
+  }
+
+  function bornLine(p) {
+    const d = new Date(p.birth_date + 'T00:00:00');
+    const datePart = d.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
+    if (p.birth_time) {
+      const t = new Date(p.birth_date + 'T' + p.birth_time);
+      return 'Born ' + datePart + ' · ' + formatTime(t.toISOString());
+    }
+    return 'Born ' + datePart;
+  }
+
+  function renderHelenaHero() {
+    const el = document.getElementById('helenaHero');
+    if (!el) return;
+    if (!babyProfile || !babyProfile.birth_date) {
+      el.innerHTML = `
+        <div class="helena-cta">
+          <div class="helena-photo-ph" style="margin:0 auto 14px;">♡</div>
+          <div class="empty-text">Set up Helena's profile to see her age and start her keepsake.</div>
+          <button class="helena-add-btn" style="margin-top:14px;" onclick="openProfileForm()">+ Set up Helena's profile</button>
+        </div>`;
+      return;
+    }
+    const p = babyProfile;
+    const age = computeAge(p.birth_date, new Date());
+    const photo = p.photo
+      ? `<img class="helena-photo" src="${p.photo}" alt="${esc(p.name)}" onclick="pickPhoto()">`
+      : `<div class="helena-photo-ph" onclick="pickPhoto()">${esc(helenaInitial())}</div>`;
+    el.innerHTML = `
+      ${photo}
+      <div class="helena-name">${esc(p.name)}</div>
+      <div class="helena-age">${formatAge(age)}</div>
+      <div class="helena-born">${esc(bornLine(p))}</div>
+      <div class="helena-daysold">${age.totalDays} day${age.totalDays !== 1 ? 's' : ''} old</div>
+      <button class="helena-share" onclick="shareKeepsake()">Share ♡</button>`;
+  }
+
+  // Filled in by later tasks:
+  function growthSvg(values, color) {
+    if (values.length < 2) return '';
+    const pts = sparklinePoints(values, 100, 50).map(p => p.x + ',' + (p.y + 5));
+    return `<svg class="growth-svg" viewBox="0 0 100 60" preserveAspectRatio="none">
+      <polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="2"
+        vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"></polyline>
+    </svg>`;
+  }
+
+  function growthChartCard(title, latestLabel, values, color) {
+    const body = values.length >= 2 ? growthSvg(values, color)
+      : `<div class="growth-empty">${values.length === 1 ? 'Add another measurement to see the trend.' : 'No measurements yet.'}</div>`;
+    return `<div class="growth-chart-card">
+      <div class="growth-chart-head"><div class="growth-chart-title">${title}</div><div class="growth-chart-latest">${esc(latestLabel)}</div></div>
+      ${body}
+    </div>`;
+  }
+
+  function shortDateLabel(dateStr) {
+    return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function renderGrowth() {
+    const el = document.getElementById('helenaGrowth');
+    if (!el) return;
+    if (!babyProfile || !babyProfile.birth_date) { el.innerHTML = ''; return; }
+    const p = babyProfile;
+
+    const weightSeries = [], heightSeries = [];
+    if (p.birth_weight_kg != null) weightSeries.push(parseFloat(p.birth_weight_kg));
+    if (p.birth_length_cm != null) heightSeries.push(parseFloat(p.birth_length_cm));
+    growthList.forEach(g => {
+      if (g.weight_kg != null) weightSeries.push(parseFloat(g.weight_kg));
+      if (g.height_cm != null) heightSeries.push(parseFloat(g.height_cm));
+    });
+
+    const latestW = weightSeries.length ? weightSeries[weightSeries.length - 1] : null;
+    const latestH = heightSeries.length ? heightSeries[heightSeries.length - 1] : null;
+    const birthW = p.birth_weight_kg != null ? parseFloat(p.birth_weight_kg) : null;
+    let wDelta = '';
+    if (latestW != null && birthW != null && weightSeries.length > 1) {
+      const d = Math.round((latestW - birthW) * 100) / 100;
+      if (d !== 0) wDelta = ` <span class="delta ${d > 0 ? 'up' : 'down'}">${d > 0 ? '▲' : '▼'}${Math.abs(d)}</span>`;
+    }
+    const unitSpan = u => `<span style="font-size:11px;color:var(--muted2);">${u}</span>`;
+
+    const statRow = `
+      <div class="helena-stat-row">
+        <div class="helena-stat"><div class="helena-stat-val">${latestW != null ? latestW + unitSpan('kg') : '—'}${wDelta}</div><div class="helena-stat-label">Weight</div></div>
+        <div class="helena-stat"><div class="helena-stat-val">${latestH != null ? latestH + unitSpan('cm') : '—'}</div><div class="helena-stat-label">Length</div></div>
+        <div class="helena-stat"><div class="helena-stat-val">${milestonesList.length}</div><div class="helena-stat-label">Milestones</div></div>
+      </div>`;
+
+    const weightCard = growthChartCard('Weight', latestW != null ? latestW + ' kg' : '', weightSeries, '#e8748a');
+    const heightCard = growthChartCard('Length', latestH != null ? latestH + ' cm' : '', heightSeries, '#c47adb');
+
+    const sorted = growthList.slice().sort((a, b) => (a.measured_on < b.measured_on ? 1 : -1));
+    const rows = sorted.map(g => {
+      if (g.id === editingGrowthId) {
+        return `
+        <div class="list-item editing" data-id="${g.id}">
+          <input type="date" class="med-input edit-dt-input" id="edit-growth-date-${g.id}" value="${g.measured_on}">
+          <input type="number" class="edit-oz-input" id="edit-growth-w-${g.id}" value="${g.weight_kg != null ? g.weight_kg : ''}" step="0.01" min="0" placeholder="kg">
+          <input type="number" class="edit-oz-input" id="edit-growth-h-${g.id}" value="${g.height_cm != null ? g.height_cm : ''}" step="0.1" min="0" placeholder="cm" style="margin-left:6px;">
+          <div class="item-actions" style="margin-left:6px;">
+            <button class="item-btn save" onclick="saveGrowth(${g.id})" aria-label="Save">✓</button>
+            <button class="item-btn" onclick="cancelGrowthEdit()" aria-label="Cancel">×</button>
+          </div>
+        </div>`;
+      }
+      const parts = [];
+      if (g.weight_kg != null) parts.push(g.weight_kg + ' kg');
+      if (g.height_cm != null) parts.push(g.height_cm + ' cm');
+      return `
+      <div class="list-item" data-id="${g.id}">
+        <div class="item-detail" style="margin-left:0;font-size:13px;color:var(--text);">${shortDateLabel(g.measured_on)}</div>
+        <div class="item-value">${parts.join(' · ')}</div>
+        <div class="item-actions">
+          <button class="item-btn" onclick="editGrowth(${g.id})" aria-label="Edit">✎</button>
+          <button class="item-btn" onclick="deleteGrowth(${g.id})" aria-label="Delete">×</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    const addBlock = growthFormOpen ? `
+      <div class="list-item editing" style="margin-top:6px;">
+        <input type="date" class="med-input edit-dt-input" id="add-growth-date" value="${localDayKey(new Date().toISOString())}">
+        <input type="number" class="edit-oz-input" id="add-growth-w" step="0.01" min="0" placeholder="kg">
+        <input type="number" class="edit-oz-input" id="add-growth-h" step="0.1" min="0" placeholder="cm" style="margin-left:6px;">
+        <div class="item-actions" style="margin-left:6px;">
+          <button class="item-btn save" onclick="submitGrowthForm()" aria-label="Save">✓</button>
+          <button class="item-btn" onclick="cancelGrowthForm()" aria-label="Cancel">×</button>
+        </div>
+      </div>`
+      : `<button class="helena-add-btn" onclick="openGrowthForm()">+ Add measurement</button>`;
+
+    el.innerHTML = `<div class="section-label">Growth</div>${statRow}${weightCard}${heightCard}
+      ${sorted.length ? `<div class="section-label" style="padding-top:4px;">History</div>` : ''}${rows}${addBlock}`;
+  }
+
+  function openGrowthForm() { growthFormOpen = true; renderGrowth(); requestAnimationFrame(() => { const i = document.getElementById('add-growth-date'); if (i) i.focus(); }); }
+  function cancelGrowthForm() { growthFormOpen = false; renderGrowth(); }
+  async function submitGrowthForm() {
+    const date = document.getElementById('add-growth-date').value;
+    const w = document.getElementById('add-growth-w').value, h = document.getElementById('add-growth-h').value;
+    if (!date) return;
+    const weight_kg = w !== '' ? parseFloat(w) : null, height_cm = h !== '' ? parseFloat(h) : null;
+    if (weight_kg == null && height_cm == null) return;
+    const { error } = await client.from('growth_measurements').insert({ session_key: getSessionKey(), measured_on: date, weight_kg, height_cm });
+    if (!error) { growthFormOpen = false; await fetchHelena(); }
+  }
+  function editGrowth(id) { editingGrowthId = id; renderGrowth(); requestAnimationFrame(() => { const i = document.getElementById('edit-growth-date-' + id); if (i) i.focus(); }); }
+  function cancelGrowthEdit() { editingGrowthId = null; renderGrowth(); }
+  async function saveGrowth(id) {
+    const date = document.getElementById('edit-growth-date-' + id).value;
+    const w = document.getElementById('edit-growth-w-' + id).value, h = document.getElementById('edit-growth-h-' + id).value;
+    if (!date) return;
+    const weight_kg = w !== '' ? parseFloat(w) : null, height_cm = h !== '' ? parseFloat(h) : null;
+    if (weight_kg == null && height_cm == null) return;
+    const { error } = await client.from('growth_measurements').update({ measured_on: date, weight_kg, height_cm }).eq('id', id);
+    if (!error) { editingGrowthId = null; await fetchHelena(); }
+  }
+  async function deleteGrowth(id) {
+    const { error } = await client.from('growth_measurements').delete().eq('id', id);
+    if (!error) { if (editingGrowthId === id) editingGrowthId = null; await fetchHelena(); }
+  }
+  function renderMilestones() {
+    const el = document.getElementById('helenaMilestones');
+    if (!el) return;
+    if (!babyProfile || !babyProfile.birth_date) { el.innerHTML = ''; return; }
+
+    const rows = milestonesList.map(m => {
+      if (m.id === editingMilestoneId) {
+        return `
+        <div class="list-item editing" data-id="${m.id}">
+          <input type="date" class="med-input edit-dt-input" id="edit-ms-date-${m.id}" value="${m.achieved_on}">
+          <input type="text" class="edit-notes-input" id="edit-ms-title-${m.id}" value="${esc(m.title)}" placeholder="Title" style="margin-left:0;">
+          <input type="text" class="edit-notes-input" id="edit-ms-note-${m.id}" value="${esc(m.note || '')}" placeholder="Note (optional)" style="margin-left:6px;">
+          <div class="item-actions" style="margin-left:6px;">
+            <button class="item-btn save" onclick="saveMilestone(${m.id})" aria-label="Save">✓</button>
+            <button class="item-btn" onclick="cancelMilestoneEdit()" aria-label="Cancel">×</button>
+          </div>
+        </div>`;
+      }
+      return `
+      <div class="list-item" data-id="${m.id}">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;color:var(--text);">${esc(m.title)}</div>
+          <div class="med-summary">${shortDateLabel(m.achieved_on)}${m.note ? ' · ' + esc(m.note) : ''}</div>
+        </div>
+        <div class="item-actions">
+          <button class="item-btn" onclick="editMilestone(${m.id})" aria-label="Edit">✎</button>
+          <button class="item-btn" onclick="deleteMilestone(${m.id})" aria-label="Delete">×</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    const empty = milestonesList.length ? '' : `<div class="growth-empty">No milestones yet — capture her firsts ♡</div>`;
+    const addBlock = milestoneFormOpen ? `
+      <div class="list-item editing" style="margin-top:6px;">
+        <input type="date" class="med-input edit-dt-input" id="add-ms-date" value="${localDayKey(new Date().toISOString())}">
+        <input type="text" class="edit-notes-input" id="add-ms-title" placeholder="First smile…" style="margin-left:0;">
+        <input type="text" class="edit-notes-input" id="add-ms-note" placeholder="Note (optional)" style="margin-left:6px;">
+        <div class="item-actions" style="margin-left:6px;">
+          <button class="item-btn save" onclick="submitMilestoneForm()" aria-label="Save">✓</button>
+          <button class="item-btn" onclick="cancelMilestoneForm()" aria-label="Cancel">×</button>
+        </div>
+      </div>`
+      : `<button class="helena-add-btn" onclick="openMilestoneForm()">+ Add milestone</button>`;
+
+    el.innerHTML = `<div class="section-label">Milestones ♡</div>${empty}${rows}${addBlock}`;
+  }
+
+  function openMilestoneForm() { milestoneFormOpen = true; renderMilestones(); requestAnimationFrame(() => { const i = document.getElementById('add-ms-title'); if (i) i.focus(); }); }
+  function cancelMilestoneForm() { milestoneFormOpen = false; renderMilestones(); }
+  async function submitMilestoneForm() {
+    const date = document.getElementById('add-ms-date').value;
+    const title = document.getElementById('add-ms-title').value.trim();
+    const note = document.getElementById('add-ms-note').value.trim() || null;
+    if (!date || !title) return;
+    const { error } = await client.from('milestones').insert({ session_key: getSessionKey(), achieved_on: date, title, note });
+    if (!error) { milestoneFormOpen = false; await fetchHelena(); }
+  }
+  function editMilestone(id) { editingMilestoneId = id; renderMilestones(); requestAnimationFrame(() => { const i = document.getElementById('edit-ms-title-' + id); if (i) i.focus(); }); }
+  function cancelMilestoneEdit() { editingMilestoneId = null; renderMilestones(); }
+  async function saveMilestone(id) {
+    const date = document.getElementById('edit-ms-date-' + id).value;
+    const title = document.getElementById('edit-ms-title-' + id).value.trim();
+    const note = document.getElementById('edit-ms-note-' + id).value.trim() || null;
+    if (!date || !title) return;
+    const { error } = await client.from('milestones').update({ achieved_on: date, title, note }).eq('id', id);
+    if (!error) { editingMilestoneId = null; await fetchHelena(); }
+  }
+  async function deleteMilestone(id) {
+    const { error } = await client.from('milestones').delete().eq('id', id);
+    if (!error) { if (editingMilestoneId === id) editingMilestoneId = null; await fetchHelena(); }
+  }
+  function renderProfileFacts() {
+    const el = document.getElementById('helenaFacts');
+    if (!el) return;
+    if (profileFormState) { renderProfileForm(); return; }
+    if (!babyProfile || !babyProfile.birth_date) { el.innerHTML = ''; return; }
+    const p = babyProfile;
+    const facts = [];
+    if (p.sex) facts.push(['Sex', p.sex === 'girl' ? 'Girl' : 'Boy']);
+    if (p.blood_type) facts.push(['Blood type', p.blood_type]);
+    if (p.birth_weight_kg != null) facts.push(['Birth weight', p.birth_weight_kg + ' kg']);
+    if (p.birth_length_cm != null) facts.push(['Birth length', p.birth_length_cm + ' cm']);
+    const grid = facts.length
+      ? `<div class="facts-grid">${facts.map(f => `<div class="fact"><div class="fact-label">${f[0]}</div><div class="fact-val">${esc(String(f[1]))}</div></div>`).join('')}</div>`
+      : '';
+    el.innerHTML = `<div class="section-label">Profile</div>${grid}
+      <button class="helena-add-btn" onclick="openProfileForm()">Edit profile</button>`;
+  }
+
+  function openProfileForm() {
+    const p = babyProfile || {};
+    profileFormState = {
+      name: p.name || 'Helena Amaya',
+      birth_date: p.birth_date || '',
+      birth_time: p.birth_time ? p.birth_time.slice(0, 5) : '',
+      sex: p.sex || '',
+      blood_type: p.blood_type || '',
+      birth_weight_kg: p.birth_weight_kg != null ? String(p.birth_weight_kg) : '',
+      birth_length_cm: p.birth_length_cm != null ? String(p.birth_length_cm) : '',
+      photo: p.photo || null,
+    };
+    renderProfileFacts();
+    requestAnimationFrame(() => { const n = document.getElementById('pf-name'); if (n) n.focus(); });
+  }
+
+  function closeProfileForm() { profileFormState = null; renderProfileFacts(); }
+
+  function syncProfileFormState() {
+    const f = profileFormState; if (!f) return;
+    const g = id => document.getElementById(id);
+    if (g('pf-name')) f.name = g('pf-name').value;
+    if (g('pf-birthdate')) f.birth_date = g('pf-birthdate').value;
+    if (g('pf-birthtime')) f.birth_time = g('pf-birthtime').value;
+    if (g('pf-blood')) f.blood_type = g('pf-blood').value;
+    if (g('pf-weight')) f.birth_weight_kg = g('pf-weight').value;
+    if (g('pf-length')) f.birth_length_cm = g('pf-length').value;
+  }
+
+  function setProfileSex(s) { syncProfileFormState(); profileFormState.sex = (profileFormState.sex === s ? '' : s); renderProfileFacts(); }
+
+  function renderProfileForm() {
+    const f = profileFormState; if (!f) return;
+    const el = document.getElementById('helenaFacts');
+    const seg = (active, s, label) => `<button type="button" class="med-seg-btn ${active ? 'active' : ''}" onclick="setProfileSex('${s}')">${label}</button>`;
+    const photo = f.photo ? `<img src="${f.photo}" alt="">` : `<div class="ph">${esc(helenaInitial())}</div>`;
+    el.innerHTML = `
+      <div class="section-label">${babyProfile ? 'Edit profile' : "Helena's profile"}</div>
+      <div class="helena-form">
+        <div class="helena-form-photo">
+          ${photo}
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button type="button" class="med-seg-btn" onclick="pickPhoto()">${f.photo ? 'Change photo' : 'Add photo'}</button>
+            ${f.photo ? `<button type="button" class="med-seg-btn" onclick="removePhoto()">Remove</button>` : ''}
+          </div>
+        </div>
+        <div class="med-form-row"><label class="med-form-label">Name</label>
+          <input type="text" class="med-input" id="pf-name" value="${esc(f.name)}" maxlength="60"></div>
+        <div class="med-row-2">
+          <div class="med-form-row" style="flex:1;"><label class="med-form-label">Birth date</label>
+            <input type="date" class="med-input" id="pf-birthdate" value="${f.birth_date}"></div>
+          <div class="med-form-row" style="flex:0 0 124px;"><label class="med-form-label">Birth time</label>
+            <input type="time" class="med-input" id="pf-birthtime" value="${f.birth_time}"></div>
+        </div>
+        <div class="med-form-row"><label class="med-form-label">Sex</label>
+          <div class="med-seg">${seg(f.sex === 'girl', 'girl', 'Girl')}${seg(f.sex === 'boy', 'boy', 'Boy')}</div></div>
+        <div class="med-row-2">
+          <div class="med-form-row" style="flex:1;"><label class="med-form-label">Birth weight (kg)</label>
+            <input type="number" class="med-input" id="pf-weight" value="${esc(f.birth_weight_kg)}" step="0.01" min="0" placeholder="3.4"></div>
+          <div class="med-form-row" style="flex:1;"><label class="med-form-label">Birth length (cm)</label>
+            <input type="number" class="med-input" id="pf-length" value="${esc(f.birth_length_cm)}" step="0.1" min="0" placeholder="50"></div>
+        </div>
+        <div class="med-form-row"><label class="med-form-label">Blood type</label>
+          <input type="text" class="med-input" id="pf-blood" value="${esc(f.blood_type)}" maxlength="6" placeholder="O+"></div>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button class="log-btn" onclick="submitProfileForm()">Save</button>
+          <button class="log-btn btn-secondary" onclick="closeProfileForm()">Cancel</button>
+        </div>
+      </div>`;
+  }
+
+  async function submitProfileForm() {
+    syncProfileFormState();
+    const f = profileFormState; if (!f) return;
+    if (!f.birth_date) { const bd = document.getElementById('pf-birthdate'); if (bd) bd.focus(); return; }
+    const row = {
+      session_key: getSessionKey(),
+      name: (f.name || '').trim() || 'Helena Amaya',
+      birth_date: f.birth_date,
+      birth_time: f.birth_time || null,
+      sex: f.sex || null,
+      blood_type: (f.blood_type || '').trim() || null,
+      birth_weight_kg: f.birth_weight_kg !== '' ? parseFloat(f.birth_weight_kg) : null,
+      birth_length_cm: f.birth_length_cm !== '' ? parseFloat(f.birth_length_cm) : null,
+      photo: f.photo || null,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await client.from('baby_profile').upsert(row, { onConflict: 'session_key' });
+    if (!error) { profileFormState = null; await fetchHelena(); }
+  }
+
+  function pickPhoto() { document.getElementById('helenaPhotoInput').click(); }
+  function removePhoto() { if (profileFormState) { profileFormState.photo = null; renderProfileFacts(); } }
+  function handlePhotoFile(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const max = 640, scale = Math.min(1, max / Math.max(img.width, img.height));
+        const cv = document.createElement('canvas');
+        cv.width = Math.round(img.width * scale);
+        cv.height = Math.round(img.height * scale);
+        cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+        const dataUrl = cv.toDataURL('image/jpeg', 0.82);
+        if (!profileFormState) openProfileForm();
+        profileFormState.photo = dataUrl;
+        renderProfileFacts();
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+  document.getElementById('helenaPhotoInput').addEventListener('change', e => {
+    if (e.target.files && e.target.files[0]) handlePhotoFile(e.target.files[0]);
+    e.target.value = '';
+  });
+
+  // ── Export / share keepsake card ──
+  function loadImageEl(src) {
+    return new Promise(resolve => { const i = new Image(); i.onload = () => resolve(i); i.onerror = () => resolve(null); i.src = src; });
+  }
+
+  async function drawKeepsakeCanvas() {
+    const p = babyProfile;
+    if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (e) {} }
+    const W = 1080, H = 1350;
+    const cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    const ctx = cv.getContext('2d');
+
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, '#1a1012'); grad.addColorStop(1, '#0a0a0a');
+    ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
+    const glow = ctx.createRadialGradient(W / 2, 380, 60, W / 2, 380, 540);
+    glow.addColorStop(0, 'rgba(232,116,138,0.22)'); glow.addColorStop(1, 'rgba(232,116,138,0)');
+    ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
+
+    ctx.textAlign = 'center';
+    const cx = W / 2, cyP = 380, r = 200;
+
+    ctx.save();
+    ctx.beginPath(); ctx.arc(cx, cyP, r, 0, Math.PI * 2); ctx.clip();
+    const img = p.photo ? await loadImageEl(p.photo) : null;
+    if (img) {
+      const side = Math.min(img.width, img.height);
+      const sx = (img.width - side) / 2, sy = (img.height - side) / 2;
+      ctx.drawImage(img, sx, sy, side, side, cx - r, cyP - r, r * 2, r * 2);
+    } else {
+      ctx.fillStyle = '#1c1c1c'; ctx.fillRect(cx - r, cyP - r, r * 2, r * 2);
+      ctx.fillStyle = '#e8748a'; ctx.font = '160px "DM Serif Display", serif';
+      ctx.textBaseline = 'middle'; ctx.fillText(helenaInitial(), cx, cyP + 8); ctx.textBaseline = 'alphabetic';
+    }
+    ctx.restore();
+    ctx.beginPath(); ctx.arc(cx, cyP, r, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(232,116,138,0.6)'; ctx.lineWidth = 6; ctx.stroke();
+
+    ctx.fillStyle = '#f5f0ee'; ctx.font = '64px "DM Serif Display", serif';
+    ctx.fillText(p.name, cx, 690);
+    const age = computeAge(p.birth_date, new Date());
+    ctx.fillStyle = '#e8748a'; ctx.font = '86px "DM Serif Display", serif';
+    ctx.fillText(formatAge(age), cx, 800);
+    ctx.fillStyle = '#9a9a9a'; ctx.font = '34px "DM Sans", sans-serif';
+    ctx.fillText(bornLine(p), cx, 864);
+    ctx.fillText(age.totalDays + ' days old', cx, 912);
+
+    let latestW = p.birth_weight_kg != null ? parseFloat(p.birth_weight_kg) : null;
+    let latestH = p.birth_length_cm != null ? parseFloat(p.birth_length_cm) : null;
+    growthList.forEach(g => { if (g.weight_kg != null) latestW = parseFloat(g.weight_kg); if (g.height_cm != null) latestH = parseFloat(g.height_cm); });
+    const statParts = [];
+    if (latestW != null) statParts.push(latestW + ' kg');
+    if (latestH != null) statParts.push(latestH + ' cm');
+    if (statParts.length) { ctx.fillStyle = '#f5f0ee'; ctx.font = '40px "DM Sans", sans-serif'; ctx.fillText(statParts.join('     ·     '), cx, 1000); }
+
+    const recent = milestonesList.slice(0, 3);
+    let y = 1095;
+    if (recent.length) {
+      ctx.fillStyle = '#888'; ctx.font = '26px "DM Sans", sans-serif'; ctx.fillText('MILESTONES', cx, y); y += 48;
+      ctx.fillStyle = '#d0c8c6'; ctx.font = '32px "DM Sans", sans-serif';
+      recent.forEach(m => { ctx.fillText('♡ ' + m.title + '  ·  ' + shortDateLabel(m.achieved_on), cx, y); y += 48; });
+    }
+
+    ctx.fillStyle = 'rgba(232,116,138,0.7)'; ctx.font = '40px "DM Sans", sans-serif'; ctx.fillText('♡', cx, H - 60);
+    return cv;
+  }
+
+  async function shareKeepsake() {
+    if (!babyProfile || !babyProfile.birth_date) return;
+    const cv = await drawKeepsakeCanvas();
+    cv.toBlob(async blob => {
+      if (!blob) return;
+      const file = new File([blob], 'helena.png', { type: 'image/png' });
+      try {
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: 'Helena ♡' });
+          return;
+        }
+      } catch (e) { /* fall through to download */ }
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'helena.png';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }, 'image/png');
+  }
+
+  // ── Day rollover: when the local date changes while the page stays open,
+  //    reload "today" data and the header so logs land on the correct day. ──
+  function updateHeaderDate() {
+    document.getElementById('headerDate').textContent =
+      new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  }
+
+  function refreshForNewDayIfNeeded() {
+    const today = localDayKey(new Date().toISOString());
+    if (today === viewDayKey) return;
+    // Don't clobber an open editor/form; retry on a later tick once it closes.
+    if (editingFeedId || editingDiaperId || editingMedDoseId || medFormState) return;
+    viewDayKey = today;
+    updateHeaderDate();
+    fetchTodayFeedings();
+    fetchTodayDiapers();
+    fetchLastDiaperChange();
+    fetchMeds();
+    if (babyProfile) renderHelenaHero();
+  }
+
+  // ══════════════════════════════════
   // INIT
   // ══════════════════════════════════
 
-  document.getElementById('headerDate').textContent =
-    new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  viewDayKey = localDayKey(new Date().toISOString());
+  updateHeaderDate();
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshForNewDayIfNeeded(); });
 
   fetchTodayFeedings();
   fetchTodayDiapers();
   fetchLastDiaperChange();
   fetchMeds();
+  fetchHelena();
 </script>
 
 </body>
