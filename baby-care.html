@@ -762,42 +762,41 @@
       display: flex;
       align-items: flex-end;
       gap: 4px;
-      height: 74px;
+      height: 86px;
     }
 
-    .bar-group {
+    .bar-stack {
       flex: 1;
       display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      gap: 3px;
+      flex-direction: column;
+      gap: 1px;
+      align-self: flex-end;
     }
 
-    .bar-col {
+    .bar-vals {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-end;
-      flex: 1;
-      max-width: 16px;
+      line-height: 1.05;
+      margin-bottom: 3px;
+      min-height: 11px;
     }
 
-    .bar-val {
-      font-size: 8px;
-      color: var(--muted2);
-      line-height: 1;
-      margin-bottom: 2px;
-      min-height: 9px;
-    }
+    .bar-vals span { font-size: 8px; font-weight: 500; }
+    .v-formula { color: var(--rose); }
+    .v-breast { color: var(--purple); }
 
-    .bar-seg {
-      width: 100%;
+    .bar-formula {
+      background: var(--rose);
       border-radius: 3px 3px 0 0;
       min-height: 0;
     }
 
-    .bar-seg.formula { background: var(--rose); }
-    .bar-seg.breast { background: var(--purple); }
+    .bar-breast {
+      background: var(--purple);
+      border-radius: 0 0 3px 3px;
+      min-height: 0;
+    }
 
     .chart-axis {
       display: flex;
@@ -2668,33 +2667,32 @@
         </div>
       </div>`;
 
-    // ── Grouped bar chart: formula vs breast per day (max 7 recent days) ──
+    // ── Stacked bar chart with per-segment values (max 7 recent days) ──
     const feedsByDay = groupFeedsByDay(feeds);
     const sortedDays = [...allDays].sort();
     const chartDays = sortedDays.slice(-7);
 
     if (chartDays.length > 0) {
-      let maxSegOz = 0;
+      let maxDayOz = 0;
       const dayData = chartDays.map(day => {
         const dayFeeds = feedsByDay[day] || [];
         const fOz = dayFeeds.filter(f => f.feed_type === 'formula').reduce((s, f) => s + parseFloat(f.amount_oz), 0);
         const bOz = dayFeeds.filter(f => f.feed_type === 'breast_milk').reduce((s, f) => s + parseFloat(f.amount_oz), 0);
-        maxSegOz = Math.max(maxSegOz, fOz, bOz);
-        return { day, fOz, bOz, total: fOz + bOz };
+        const total = fOz + bOz;
+        if (total > maxDayOz) maxDayOz = total;
+        return { day, fOz, bOz, total };
       });
 
-      const maxBarH = 50;
-      const barH = oz => maxSegOz > 0 && oz > 0 ? Math.max(2, Math.round((oz / maxSegOz) * maxBarH)) : 0;
+      const maxBarH = 56;
+      const segH = oz => maxDayOz > 0 && oz > 0 ? Math.max(2, Math.round((oz / maxDayOz) * maxBarH)) : 0;
       const bars = dayData.map(d => `
-        <div class="bar-group">
-          <div class="bar-col">
-            <div class="bar-val">${d.fOz > 0 ? oz1(d.fOz) : ''}</div>
-            <div class="bar-seg formula" style="height:${barH(d.fOz)}px"></div>
+        <div class="bar-stack">
+          <div class="bar-vals">
+            ${d.fOz > 0 ? `<span class="v-formula">${oz1(d.fOz)}</span>` : ''}
+            ${d.bOz > 0 ? `<span class="v-breast">${oz1(d.bOz)}</span>` : ''}
           </div>
-          <div class="bar-col">
-            <div class="bar-val">${d.bOz > 0 ? oz1(d.bOz) : ''}</div>
-            <div class="bar-seg breast" style="height:${barH(d.bOz)}px"></div>
-          </div>
+          <div class="bar-formula" style="height:${segH(d.fOz)}px"></div>
+          <div class="bar-breast" style="height:${segH(d.bOz)}px"></div>
         </div>`).join('');
 
       const labels = dayData.map(d => {
@@ -2704,7 +2702,7 @@
 
       html += `
         <div class="chart-card">
-          <div class="chart-title">Daily intake · formula vs breast (oz)</div>
+          <div class="chart-title">Daily intake (oz) · 🍼 formula + 🤱 breast</div>
           <div class="bar-chart">${bars}</div>
           <div class="chart-axis">${labels}</div>
           <div class="chart-legend">
