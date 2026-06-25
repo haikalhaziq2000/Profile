@@ -969,6 +969,174 @@
       border-color: var(--rose);
       color: var(--rose);
     }
+
+    /* ── Meds tab ── */
+    .meds-due { padding: 16px 16px 4px; }
+
+    .meds-card {
+      background: linear-gradient(135deg, rgba(232,116,138,0.15), rgba(232,116,138,0.05));
+      border: 1px solid rgba(232,116,138,0.22);
+      border-radius: 16px;
+      padding: 14px 16px;
+      margin-bottom: 8px;
+    }
+
+    .meds-card.overdue-card {
+      border-color: rgba(231,76,60,0.4);
+      background: linear-gradient(135deg, rgba(231,76,60,0.12), rgba(231,76,60,0.03));
+    }
+
+    .meds-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .meds-card-name { font-size: 15px; color: var(--text); font-weight: 500; }
+    .meds-card-dose { font-size: 11px; color: var(--muted2); margin-top: 2px; }
+
+    .meds-card-right { text-align: right; flex-shrink: 0; }
+
+    .meds-card-sub {
+      font-size: 9px;
+      color: var(--muted2);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .meds-card-count {
+      font-family: 'DM Serif Display', serif;
+      font-size: 30px;
+      color: var(--text);
+      letter-spacing: 1px;
+      line-height: 1.05;
+    }
+
+    .meds-card-count.overdue { color: #e74c3c; }
+
+    .meds-card-actions { display: flex; gap: 6px; margin-top: 12px; }
+    .meds-card-actions .log-btn { padding: 10px; font-size: 13px; }
+
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--muted2);
+      border: 1px solid var(--border);
+      flex: 0 0 90px;
+    }
+
+    .meds-add-wrap { padding: 6px 16px 0; }
+
+    .meds-add-toggle {
+      width: 100%;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px dashed rgba(232,116,138,0.45);
+      background: transparent;
+      color: var(--rose);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      cursor: pointer;
+      -webkit-appearance: none;
+    }
+
+    .meds-form { padding: 14px 16px 4px; }
+
+    .med-form-row { margin-bottom: 12px; }
+
+    .med-form-label {
+      display: block;
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 6px;
+    }
+
+    .med-input, .med-select {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      padding: 10px 12px;
+      -webkit-appearance: none;
+      appearance: none;
+      outline: none;
+      color-scheme: dark;
+      min-width: 0;
+    }
+
+    .med-input:focus, .med-select:focus { border-color: var(--rose); }
+
+    .med-row-2 { display: flex; gap: 8px; }
+
+    .med-seg { display: flex; gap: 6px; }
+
+    .med-seg-btn {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      color: var(--muted2);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      cursor: pointer;
+      -webkit-appearance: none;
+    }
+
+    .med-seg-btn.active {
+      background: var(--rose-soft);
+      border-color: var(--rose);
+      color: var(--rose);
+    }
+
+    .med-time-row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
+
+    .med-time-row .med-input { flex: 1; }
+
+    .med-time-del {
+      width: 38px;
+      height: 38px;
+      flex-shrink: 0;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted2);
+      cursor: pointer;
+      -webkit-appearance: none;
+    }
+
+    .med-time-add {
+      background: transparent;
+      border: none;
+      color: var(--rose);
+      font-size: 12px;
+      cursor: pointer;
+      padding: 2px 0;
+    }
+
+    .med-list { padding: 4px 16px 0; }
+    .med-list:last-of-type { padding-bottom: 24px; }
+
+    .med-summary { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    .med-item-skipped { opacity: 0.55; }
+
+    .med-tag-skipped {
+      font-size: 10px;
+      color: var(--muted2);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .med-finished-section { margin-top: 8px; }
+
+    /* meds timeline dot */
+    .timeline-dot.med { background: #d9a441; }
   </style>
 </head>
 <body>
@@ -1048,6 +1216,18 @@
       </div>
     </div>
 
+    <!-- Meds tab -->
+    <div class="tab-panel" data-tab="meds">
+      <div class="meds-due" id="medsDue"></div>
+      <div class="meds-add-wrap">
+        <button class="meds-add-toggle" id="medsAddToggle">+ Add medicine</button>
+        <div class="meds-form" id="medsForm" style="display:none"></div>
+      </div>
+      <div class="med-list" id="medsTodayList"></div>
+      <div class="med-list" id="medsActiveList"></div>
+      <div class="med-list" id="medsFinishedList"></div>
+    </div>
+
     <!-- Trends tab -->
     <div class="tab-panel" data-tab="trends">
       <div class="trends-filter">
@@ -1090,6 +1270,13 @@
       </svg>
       Diaper
     </button>
+    <button class="tab-btn" data-tab="meds">
+      <svg class="tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="9" width="18" height="6" rx="3" transform="rotate(45 12 12)"/>
+        <path d="M8.5 8.5l7 7"/>
+      </svg>
+      Meds
+    </button>
     <button class="tab-btn" data-tab="trends">
       <svg class="tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
         <rect x="3" y="3" width="18" height="18" rx="3"/>
@@ -1126,6 +1313,11 @@
   let countdownInterval = null;
   let trendsFilter  = { mode: 'all', from: null, to: null };
   let activityFilter = 'all';
+  let medications     = [];
+  let medDoses        = [];
+  let medsInterval    = null;
+  let editingMedDoseId = null;
+  let medFormState    = null;
 
   // ── Formatting helpers ──
   function formatTime(dateStr) {
@@ -1155,6 +1347,92 @@
     };
   }
 
+  // Day-bucket key in LOCAL time. Timestamps come back from Supabase as UTC
+  // ISO strings, so slicing "YYYY-MM-DD" off them would group by the UTC date —
+  // shifting evening/early-morning entries onto the wrong day in the Trends
+  // timeline, charts and per-day stats. Derive the key from the local date.
+  function localDayKey(dateStr) {
+    const d = new Date(dateStr);
+    return d.getFullYear() + '-' +
+           String(d.getMonth() + 1).padStart(2, '0') + '-' +
+           String(d.getDate()).padStart(2, '0');
+  }
+
+  // ── Meds scheduling (pure) ──
+  function medEndAt(med) {
+    if (med.duration_type !== 'days') return null;
+    return new Date(new Date(med.start_at).getTime() + med.duration_days * 86400000);
+  }
+  function isMedFinished(med, nowMs) {
+    const end = medEndAt(med);
+    return !!end && nowMs > end.getTime();
+  }
+  function isMedActive(med, nowMs) {
+    return med.status === 'active' && !isMedFinished(med, nowMs);
+  }
+  function medDueSlots(med, nowMs) {
+    const startMs = new Date(med.start_at).getTime();
+    const end = medEndAt(med);
+    const endMs = end ? end.getTime() : Infinity;
+    let due = null, next = null;
+    if (med.schedule_type === 'interval') {
+      const step = med.interval_hours * 3600000;
+      if (nowMs >= startMs) {
+        const k = Math.floor((nowMs - startMs) / step);
+        const d = startMs + k * step;
+        if (d <= endMs) due = d;
+      }
+      const nk = nowMs < startMs ? 0 : Math.floor((nowMs - startMs) / step) + 1;
+      const n = startMs + nk * step;
+      if (n <= endMs && n > nowMs) next = n;
+    } else {
+      const times = med.fixed_times || [];
+      const base = new Date(nowMs);
+      for (let off = -1; off <= 1; off++) {
+        const day = new Date(base.getFullYear(), base.getMonth(), base.getDate() + off);
+        for (const t of times) {
+          const [h, m] = t.split(':').map(Number);
+          const slot = new Date(day.getFullYear(), day.getMonth(), day.getDate(), h, m, 0, 0).getTime();
+          if (slot < startMs || slot > endMs) continue;
+          if (slot <= nowMs && (due === null || slot > due)) due = slot;
+          if (slot > nowMs && (next === null || slot < next)) next = slot;
+        }
+      }
+    }
+    return { dueSlot: due, nextSlot: next };
+  }
+  function slotActioned(slotMs, doses) {
+    return doses.some(d => d.scheduled_for && new Date(d.scheduled_for).getTime() === slotMs);
+  }
+  function doseStatus(med, doses, nowMs) {
+    const { dueSlot, nextSlot } = medDueSlots(med, nowMs);
+    if (dueSlot !== null && !slotActioned(dueSlot, doses))
+      return { state: 'overdue', slotMs: dueSlot, deltaMs: nowMs - dueSlot };
+    if (nextSlot !== null)
+      return { state: 'upcoming', slotMs: nextSlot, deltaMs: nextSlot - nowMs };
+    return { state: 'none', slotMs: null, deltaMs: 0 };
+  }
+  function scheduleSummary(med, nowMs) {
+    let s;
+    if (med.schedule_type === 'interval') {
+      const h = med.interval_hours;
+      s = 'every ' + (h % 1 === 0 ? h : h.toFixed(1)) + 'h';
+    } else {
+      s = (med.fixed_times || []).map(t => {
+        const [hh, mm] = t.split(':').map(Number);
+        const ap = hh < 12 ? 'AM' : 'PM';
+        const h12 = hh % 12 === 0 ? 12 : hh % 12;
+        return h12 + ':' + String(mm).padStart(2, '0') + ' ' + ap;
+      }).join(', ');
+    }
+    if (med.status === 'stopped') return s + ' · stopped';
+    if (isMedFinished(med, nowMs)) return s + ' · finished';
+    if (med.duration_type === 'ongoing') return s + ' · ongoing';
+    const end = medEndAt(med);
+    const daysLeft = Math.max(0, Math.ceil((end.getTime() - nowMs) / 86400000));
+    return s + ' · ' + daysLeft + ' day' + (daysLeft !== 1 ? 's' : '') + ' left';
+  }
+
   function esc(str) {
     const d = document.createElement('div');
     d.textContent = str;
@@ -1179,6 +1457,7 @@
       btn.classList.add('active');
       document.querySelector(`.tab-panel[data-tab="${btn.dataset.tab}"]`).classList.add('active');
       if (btn.dataset.tab === 'trends') fetchTrends();
+      if (btn.dataset.tab === 'meds') fetchMeds();
     });
   });
 
@@ -1575,6 +1854,467 @@
   }
 
   // ══════════════════════════════════
+  // MEDS TAB
+  // ══════════════════════════════════
+
+  async function fetchMeds() {
+    const [medsRes, dosesRes] = await Promise.all([
+      client.from('medications').select('*').eq('session_key', getSessionKey())
+        .order('created_at', { ascending: false }),
+      client.from('med_doses').select('*').eq('session_key', getSessionKey())
+        .order('given_at', { ascending: false, nullsFirst: false }),
+    ]);
+    medications = medsRes.data || [];
+    medDoses = dosesRes.data || [];
+    renderMedsTab();
+    startMedsCountdown();
+  }
+
+  function dosesForMed(medId) {
+    return medDoses.filter(d => d.medication_id === medId);
+  }
+
+  function renderMedsTab() {
+    renderMedsDue();
+    renderMedsTodayList();
+    renderMedsLists();
+  }
+
+  function startMedsCountdown() {
+    if (medsInterval) clearInterval(medsInterval);
+    renderMedsDue();
+    medsInterval = setInterval(renderMedsDue, 1000);
+  }
+
+  function fmtHM(ms) {
+    const totalMin = Math.floor(Math.abs(ms) / 60000);
+    return Math.floor(totalMin / 60) + ':' + String(totalMin % 60).padStart(2, '0');
+  }
+
+  function renderMedsDue() {
+    const el = document.getElementById('medsDue');
+    if (!el) return;
+    const now = Date.now();
+    const active = medications.filter(m => isMedActive(m, now));
+
+    if (active.length === 0) {
+      el.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">💊</div>
+          <div class="empty-text">No active medicines.<br>Add one below to start tracking doses.</div>
+        </div>`;
+      return;
+    }
+
+    el.innerHTML = active.map(med => {
+      const st = doseStatus(med, dosesForMed(med.id), now);
+      const dose = `${med.dose_amount} ${esc(med.dose_unit)}`;
+
+      if (st.state === 'none') {
+        return `
+        <div class="meds-card">
+          <div class="meds-card-top">
+            <div>
+              <div class="meds-card-name">${esc(med.name)}</div>
+              <div class="meds-card-dose">${dose}</div>
+            </div>
+            <div class="meds-card-right"><div class="meds-card-sub">No upcoming dose</div></div>
+          </div>
+        </div>`;
+      }
+
+      const overdue = st.state === 'overdue';
+      const label = overdue ? 'Overdue by' : 'Next dose in';
+      const slotTime = formatTime(new Date(st.slotMs).toISOString());
+      return `
+        <div class="meds-card ${overdue ? 'overdue-card' : ''}">
+          <div class="meds-card-top">
+            <div>
+              <div class="meds-card-name">${esc(med.name)}</div>
+              <div class="meds-card-dose">${dose}</div>
+            </div>
+            <div class="meds-card-right">
+              <div class="meds-card-sub">${label}</div>
+              <div class="meds-card-count ${overdue ? 'overdue' : ''}">${fmtHM(st.deltaMs)}</div>
+              <div class="meds-card-sub">${overdue ? 'due ' : 'at '}${slotTime}</div>
+            </div>
+          </div>
+          ${overdue ? `
+          <div class="meds-card-actions">
+            <button class="log-btn" onclick="markDoseGiven(${med.id})">✓ Mark given</button>
+            <button class="log-btn btn-secondary" onclick="skipDose(${med.id})">Skip</button>
+          </div>` : ''}
+        </div>`;
+    }).join('');
+  }
+
+  async function markDoseGiven(medId) {
+    const med = medications.find(m => m.id === medId);
+    if (!med) return;
+    const { dueSlot } = medDueSlots(med, Date.now());
+    const { data, error } = await client.from('med_doses').insert({
+      medication_id: medId, session_key: getSessionKey(),
+      scheduled_for: dueSlot ? new Date(dueSlot).toISOString() : null,
+      given_at: new Date().toISOString(),
+      dose_amount: med.dose_amount, dose_unit: med.dose_unit, status: 'given',
+    }).select().single();
+    if (!error && data) { medDoses.unshift(data); renderMedsTab(); }
+  }
+
+  async function skipDose(medId) {
+    const med = medications.find(m => m.id === medId);
+    if (!med) return;
+    const { dueSlot } = medDueSlots(med, Date.now());
+    if (dueSlot === null) return;
+    const { data, error } = await client.from('med_doses').insert({
+      medication_id: medId, session_key: getSessionKey(),
+      scheduled_for: new Date(dueSlot).toISOString(), given_at: null, status: 'skipped',
+    }).select().single();
+    if (!error && data) { medDoses.unshift(data); renderMedsTab(); }
+  }
+
+  async function logExtraDose(medId) {
+    const med = medications.find(m => m.id === medId);
+    if (!med) return;
+    const { data, error } = await client.from('med_doses').insert({
+      medication_id: medId, session_key: getSessionKey(),
+      scheduled_for: null, given_at: new Date().toISOString(),
+      dose_amount: med.dose_amount, dose_unit: med.dose_unit, status: 'given',
+    }).select().single();
+    if (!error && data) { medDoses.unshift(data); renderMedsTab(); }
+  }
+
+  function medName(id) {
+    const m = medications.find(x => x.id === id);
+    return m ? m.name : 'Medicine';
+  }
+
+  function renderMedsTodayList() {
+    const el = document.getElementById('medsTodayList');
+    if (!el) return;
+    const today = localDayKey(new Date().toISOString());
+    const todays = medDoses
+      .filter(d => { const ref = d.given_at || d.scheduled_for; return ref && localDayKey(ref) === today; })
+      .sort((a, b) => new Date(b.given_at || b.scheduled_for) - new Date(a.given_at || a.scheduled_for));
+
+    if (todays.length === 0) { el.innerHTML = ''; return; }
+
+    const units = ['mL', 'mg', 'drops', 'IU', 'tsp', 'tablet'];
+    const items = todays.map(d => {
+      if (d.id === editingMedDoseId && d.status === 'given') {
+        return `
+        <div class="list-item" data-id="${d.id}">
+          <input type="time" class="edit-time-input" id="edit-meddose-time-${d.id}" value="${getLocalTimeValue(d.given_at)}"
+            onkeydown="if(event.key==='Enter')saveMedDose(${d.id});if(event.key==='Escape')cancelMedDoseEdit()">
+          <input type="number" class="edit-oz-input" id="edit-meddose-amt-${d.id}" value="${d.dose_amount}" step="0.5" min="0" style="margin-left:6px;">
+          <select class="med-select" id="edit-meddose-unit-${d.id}" style="margin-left:6px;width:auto;flex:0 0 80px;padding:6px 8px;font-size:13px;">
+            ${units.map(u => `<option value="${u}" ${d.dose_unit === u ? 'selected' : ''}>${u}</option>`).join('')}
+          </select>
+          <div class="item-actions" style="margin-left:6px;">
+            <button class="item-btn save" onclick="saveMedDose(${d.id})" aria-label="Save">✓</button>
+            <button class="item-btn" onclick="cancelMedDoseEdit()" aria-label="Cancel">×</button>
+          </div>
+        </div>`;
+      }
+      const skipped = d.status === 'skipped';
+      const time = skipped ? (d.scheduled_for ? formatTime(d.scheduled_for) : '—') : formatTime(d.given_at);
+      return `
+      <div class="list-item ${skipped ? 'med-item-skipped' : ''}" data-id="${d.id}">
+        <div class="item-time">${time}</div>
+        <div class="item-detail">${esc(medName(d.medication_id))}</div>
+        ${skipped
+          ? `<div class="item-value med-tag-skipped">skipped</div>`
+          : `<div class="item-value">${d.dose_amount} ${esc(d.dose_unit)}</div>`}
+        <div class="item-actions">
+          ${skipped ? '' : `<button class="item-btn" onclick="editMedDose(${d.id})" aria-label="Edit">✎</button>`}
+          <button class="item-btn" onclick="deleteMedDose(${d.id})" aria-label="Delete">×</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    el.innerHTML = `<div class="section-label">Helena's meds today ♡</div>` + items;
+  }
+
+  function editMedDose(id) {
+    editingMedDoseId = id;
+    renderMedsTodayList();
+    requestAnimationFrame(() => {
+      const input = document.getElementById(`edit-meddose-time-${id}`);
+      if (input) input.focus();
+    });
+  }
+
+  function cancelMedDoseEdit() {
+    editingMedDoseId = null;
+    renderMedsTodayList();
+  }
+
+  async function saveMedDose(id) {
+    const timeInput = document.getElementById(`edit-meddose-time-${id}`);
+    const amtInput = document.getElementById(`edit-meddose-amt-${id}`);
+    const unitInput = document.getElementById(`edit-meddose-unit-${id}`);
+    if (!timeInput || !amtInput) return;
+    const dose = medDoses.find(d => d.id === id);
+    if (!dose || !dose.given_at) return;
+    const newTs = buildNewTimestamp(dose.given_at, timeInput.value);
+    const newAmt = parseFloat(amtInput.value);
+    if (isNaN(newAmt) || newAmt <= 0) return;
+    const newUnit = unitInput ? unitInput.value : dose.dose_unit;
+    const { error } = await client.from('med_doses')
+      .update({ given_at: newTs, dose_amount: newAmt, dose_unit: newUnit })
+      .eq('id', id);
+    if (!error) {
+      dose.given_at = newTs; dose.dose_amount = newAmt; dose.dose_unit = newUnit;
+      editingMedDoseId = null;
+      renderMedsTab();
+    }
+  }
+
+  async function deleteMedDose(id) {
+    const { error } = await client.from('med_doses').delete().eq('id', id);
+    if (!error) {
+      medDoses = medDoses.filter(d => d.id !== id);
+      if (editingMedDoseId === id) editingMedDoseId = null;
+      renderMedsTab();
+    }
+  }
+
+  function renderMedsLists() {
+    const activeEl = document.getElementById('medsActiveList');
+    const finishedEl = document.getElementById('medsFinishedList');
+    if (!activeEl || !finishedEl) return;
+    const now = Date.now();
+    const active = medications.filter(m => isMedActive(m, now));
+    const inactive = medications.filter(m => !isMedActive(m, now));
+
+    const medRow = (med, actions) => `
+      <div class="list-item" data-id="${med.id}">
+        <div style="flex:1;min-width:0;">
+          <div class="meds-card-name">${esc(med.name)}
+            <span style="color:var(--rose);font-size:13px;font-weight:500;">${med.dose_amount} ${esc(med.dose_unit)}</span>
+          </div>
+          <div class="med-summary">${esc(scheduleSummary(med, now))}</div>
+        </div>
+        <div class="item-actions">${actions}</div>
+      </div>`;
+
+    activeEl.innerHTML = active.length === 0 ? '' :
+      `<div class="section-label">Active medicines</div>` +
+      active.map(med => medRow(med, `
+        <button class="item-btn" onclick="logExtraDose(${med.id})" aria-label="Log an extra dose">+</button>
+        <button class="item-btn" onclick="editMed(${med.id})" aria-label="Edit">✎</button>
+        <button class="item-btn" onclick="stopMed(${med.id})" aria-label="Stop">⏹</button>
+        <button class="item-btn" onclick="deleteMed(${med.id})" aria-label="Delete">×</button>
+      `)).join('');
+
+    finishedEl.innerHTML = inactive.length === 0 ? '' :
+      `<div class="section-label med-finished-section">Finished / stopped</div>` +
+      inactive.map(med => medRow(med, `
+        <button class="item-btn" onclick="deleteMed(${med.id})" aria-label="Delete">×</button>
+      `)).join('');
+  }
+
+  async function stopMed(id) {
+    const { error } = await client.from('medications').update({ status: 'stopped' }).eq('id', id);
+    if (!error) {
+      const m = medications.find(x => x.id === id);
+      if (m) m.status = 'stopped';
+      renderMedsTab();
+      startMedsCountdown();
+    }
+  }
+
+  async function deleteMed(id) {
+    if (!confirm('Delete this medicine and all its logged doses?')) return;
+    const { error } = await client.from('medications').delete().eq('id', id);
+    if (!error) {
+      medications = medications.filter(m => m.id !== id);
+      medDoses = medDoses.filter(d => d.medication_id !== id);
+      renderMedsTab();
+      startMedsCountdown();
+    }
+  }
+
+  // ── Add / edit medicine form ──
+  const MED_UNITS = ['mL', 'mg', 'drops', 'IU', 'tsp', 'tablet'];
+
+  function blankMedForm() {
+    const nowIso = new Date().toISOString();
+    return {
+      id: null, name: '', dose_amount: '', dose_unit: 'mL',
+      schedule_type: 'interval', interval_hours: '8', fixed_times: ['08:00'],
+      start_date: localDayKey(nowIso), start_time: getLocalTimeValue(nowIso),
+      duration_type: 'days', duration_days: '5',
+    };
+  }
+
+  function openMedForm(med) {
+    if (med) {
+      const times = Array.isArray(med.fixed_times) ? med.fixed_times.slice() : [];
+      medFormState = {
+        id: med.id, name: med.name,
+        dose_amount: String(med.dose_amount), dose_unit: med.dose_unit,
+        schedule_type: med.schedule_type,
+        interval_hours: med.interval_hours != null ? String(med.interval_hours) : '8',
+        fixed_times: times.length ? times : ['08:00'],
+        start_date: localDayKey(med.start_at), start_time: getLocalTimeValue(med.start_at),
+        duration_type: med.duration_type,
+        duration_days: med.duration_days != null ? String(med.duration_days) : '5',
+      };
+    } else {
+      medFormState = blankMedForm();
+    }
+    document.getElementById('medsForm').style.display = 'block';
+    renderMedForm();
+    requestAnimationFrame(() => { const n = document.getElementById('mf-name'); if (n) n.focus(); });
+  }
+
+  function closeMedForm() {
+    medFormState = null;
+    const form = document.getElementById('medsForm');
+    if (form) { form.style.display = 'none'; form.innerHTML = ''; }
+  }
+
+  function syncMedFormState() {
+    const f = medFormState; if (!f) return;
+    const g = id => document.getElementById(id);
+    if (g('mf-name')) f.name = g('mf-name').value;
+    if (g('mf-dose')) f.dose_amount = g('mf-dose').value;
+    if (g('mf-unit')) f.dose_unit = g('mf-unit').value;
+    if (g('mf-interval')) f.interval_hours = g('mf-interval').value;
+    if (g('mf-start-date')) f.start_date = g('mf-start-date').value;
+    if (g('mf-start-time')) f.start_time = g('mf-start-time').value;
+    if (g('mf-days')) f.duration_days = g('mf-days').value;
+    const timeInputs = document.querySelectorAll('.mf-time');
+    if (timeInputs.length) f.fixed_times = Array.from(timeInputs).map(i => i.value);
+  }
+
+  function setMedSchedule(type) { syncMedFormState(); medFormState.schedule_type = type; renderMedForm(); }
+  function setMedDuration(type) { syncMedFormState(); medFormState.duration_type = type; renderMedForm(); }
+  function addMedTime() { syncMedFormState(); medFormState.fixed_times.push('08:00'); renderMedForm(); }
+  function removeMedTime(i) {
+    syncMedFormState();
+    medFormState.fixed_times.splice(i, 1);
+    if (!medFormState.fixed_times.length) medFormState.fixed_times.push('08:00');
+    renderMedForm();
+  }
+
+  function renderMedForm() {
+    const f = medFormState; if (!f) return;
+    const form = document.getElementById('medsForm');
+    const seg = (active, type, fn, label) =>
+      `<button type="button" class="med-seg-btn ${active ? 'active' : ''}" onclick="${fn}('${type}')">${label}</button>`;
+
+    const scheduleFields = f.schedule_type === 'interval'
+      ? `<div class="med-form-row">
+           <label class="med-form-label">Every (hours)</label>
+           <input type="number" class="med-input" id="mf-interval" value="${esc(f.interval_hours)}" step="0.5" min="0.5">
+         </div>`
+      : `<div class="med-form-row">
+           <label class="med-form-label">Times of day</label>
+           ${f.fixed_times.map((t, i) => `
+             <div class="med-time-row">
+               <input type="time" class="med-input mf-time" value="${t}">
+               <button type="button" class="med-time-del" onclick="removeMedTime(${i})" aria-label="Remove time">×</button>
+             </div>`).join('')}
+           <button type="button" class="med-time-add" onclick="addMedTime()">+ add time</button>
+         </div>`;
+
+    const durationFields = f.duration_type === 'days'
+      ? `<div class="med-form-row">
+           <label class="med-form-label">For how many days</label>
+           <input type="number" class="med-input" id="mf-days" value="${esc(f.duration_days)}" step="1" min="1">
+         </div>` : '';
+
+    form.innerHTML = `
+      <div class="med-form-row">
+        <label class="med-form-label">Medicine name</label>
+        <input type="text" class="med-input" id="mf-name" value="${esc(f.name)}" placeholder="e.g. Paracetamol" maxlength="80">
+      </div>
+      <div class="med-form-row">
+        <label class="med-form-label">Dose</label>
+        <div class="med-row-2">
+          <input type="number" class="med-input" id="mf-dose" value="${esc(f.dose_amount)}" step="0.5" min="0" placeholder="2.5" style="flex:1;">
+          <select class="med-select" id="mf-unit" style="flex:0 0 110px;">
+            ${MED_UNITS.map(u => `<option value="${u}" ${f.dose_unit === u ? 'selected' : ''}>${u}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="med-form-row">
+        <label class="med-form-label">Schedule</label>
+        <div class="med-seg">
+          ${seg(f.schedule_type === 'interval', 'interval', 'setMedSchedule', 'Every N hours')}
+          ${seg(f.schedule_type === 'fixed', 'fixed', 'setMedSchedule', 'Fixed times')}
+        </div>
+      </div>
+      ${scheduleFields}
+      <div class="med-form-row">
+        <label class="med-form-label">Start</label>
+        <div class="med-row-2">
+          <input type="date" class="med-input" id="mf-start-date" value="${f.start_date}" style="flex:1;">
+          <input type="time" class="med-input" id="mf-start-time" value="${f.start_time}" style="flex:0 0 120px;">
+        </div>
+      </div>
+      <div class="med-form-row">
+        <label class="med-form-label">Duration</label>
+        <div class="med-seg">
+          ${seg(f.duration_type === 'days', 'days', 'setMedDuration', 'For N days')}
+          ${seg(f.duration_type === 'ongoing', 'ongoing', 'setMedDuration', 'Ongoing')}
+        </div>
+      </div>
+      ${durationFields}
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <button class="log-btn" onclick="submitMedForm()">${f.id ? 'Save changes' : 'Add medicine'}</button>
+        <button class="log-btn btn-secondary" onclick="closeMedForm()">Cancel</button>
+      </div>`;
+  }
+
+  async function submitMedForm() {
+    syncMedFormState();
+    const f = medFormState; if (!f) return;
+    const name = f.name.trim();
+    const doseAmount = parseFloat(f.dose_amount);
+    if (!name || isNaN(doseAmount) || doseAmount <= 0) return;
+
+    let interval_hours = null, fixed_times = null;
+    if (f.schedule_type === 'interval') {
+      interval_hours = parseFloat(f.interval_hours);
+      if (isNaN(interval_hours) || interval_hours <= 0) return;
+    } else {
+      fixed_times = (f.fixed_times || []).filter(t => /^\d{2}:\d{2}$/.test(t));
+      if (!fixed_times.length) return;
+    }
+    let duration_days = null;
+    if (f.duration_type === 'days') {
+      duration_days = parseInt(f.duration_days, 10);
+      if (isNaN(duration_days) || duration_days < 1) return;
+    }
+    const startIso = new Date(`${f.start_date}T${f.start_time}`).toISOString();
+
+    const row = {
+      session_key: getSessionKey(), name,
+      dose_amount: doseAmount, dose_unit: f.dose_unit,
+      schedule_type: f.schedule_type, interval_hours, fixed_times,
+      start_at: startIso, duration_type: f.duration_type, duration_days,
+    };
+    const { error } = f.id
+      ? await client.from('medications').update(row).eq('id', f.id)
+      : await client.from('medications').insert({ ...row, status: 'active' });
+    if (!error) { closeMedForm(); await fetchMeds(); }
+  }
+
+  function editMed(id) {
+    const med = medications.find(m => m.id === id);
+    if (med) openMedForm(med);
+  }
+
+  document.getElementById('medsAddToggle').addEventListener('click', () => {
+    const form = document.getElementById('medsForm');
+    if (form.style.display === 'none' || !medFormState) openMedForm(null);
+    else closeMedForm();
+  });
+
+  // ══════════════════════════════════
   // TRENDS TAB
   // ══════════════════════════════════
 
@@ -1635,21 +2375,25 @@
 
     let feedQuery = client.from('feedings').select('*').eq('session_key', getSessionKey()).order('fed_at', { ascending: true });
     let diaperQuery = client.from('diaper_changes').select('*').eq('session_key', getSessionKey()).order('changed_at', { ascending: true });
+    let medQuery = client.from('med_doses').select('*, medications(name)').eq('session_key', getSessionKey()).eq('status', 'given').order('given_at', { ascending: true });
 
     if (from) {
       feedQuery = feedQuery.gte('fed_at', from);
       diaperQuery = diaperQuery.gte('changed_at', from);
+      medQuery = medQuery.gte('given_at', from);
     }
     if (to) {
       feedQuery = feedQuery.lte('fed_at', to);
       diaperQuery = diaperQuery.lte('changed_at', to);
+      medQuery = medQuery.lte('given_at', to);
     }
 
-    const [feedResult, diaperResult] = await Promise.all([feedQuery, diaperQuery]);
+    const [feedResult, diaperResult, medResult] = await Promise.all([feedQuery, diaperQuery, medQuery]);
     const feeds   = feedResult.data  || [];
     const diapers = diaperResult.data || [];
+    const meds    = medResult.data || [];
 
-    renderTrends(feeds, diapers);
+    renderTrends(feeds, diapers, meds);
   }
 
   // ── Activity filter handler (delegated, rendered dynamically) ──
@@ -1661,24 +2405,26 @@
     entries.forEach(el => {
       if (filter === 'all') { el.style.display = ''; }
       else if (filter === 'feeds') { el.style.display = el.dataset.type === 'feed' ? '' : 'none'; }
-      else { el.style.display = el.dataset.type === 'diaper' ? '' : 'none'; }
+      else if (filter === 'diapers') { el.style.display = el.dataset.type === 'diaper' ? '' : 'none'; }
+      else { el.style.display = el.dataset.type === 'med' ? '' : 'none'; }
     });
   }
 
   // ── Group feeds by day ──
   function groupFeedsByDay(feeds) {
     return feeds.reduce((acc, f) => {
-      const day = f.fed_at.slice(0, 10);
+      const day = localDayKey(f.fed_at);
       (acc[day] = acc[day] || []).push(f);
       return acc;
     }, {});
   }
 
   // ── Render trends ──
-  function renderTrends(feeds, diapers) {
+  function renderTrends(feeds, diapers, meds) {
+    meds = meds || [];
     const content = document.getElementById('trendsContent');
 
-    if (feeds.length === 0 && diapers.length === 0) {
+    if (feeds.length === 0 && diapers.length === 0 && meds.length === 0) {
       content.innerHTML = `
         <div class="empty-state">
           <div class="empty-icon">📊</div>
@@ -1688,9 +2434,10 @@
     }
 
     // ── KPIs ──
-    const feedDays = new Set(feeds.map(f => f.fed_at.slice(0, 10)));
-    const diaperDays = new Set(diapers.map(d => d.changed_at.slice(0, 10)));
-    const allDays = new Set([...feedDays, ...diaperDays]);
+    const feedDays = new Set(feeds.map(f => localDayKey(f.fed_at)));
+    const diaperDays = new Set(diapers.map(d => localDayKey(d.changed_at)));
+    const medDays = new Set(meds.map(m => localDayKey(m.given_at)));
+    const allDays = new Set([...feedDays, ...diaperDays, ...medDays]);
     const numDays = Math.max(allDays.size, 1);
 
     const totalOz = feeds.reduce((s, f) => s + parseFloat(f.amount_oz), 0);
@@ -1699,6 +2446,7 @@
     const avgOzDay = Math.round(totalOz / numDays * 10) / 10;
     const avgFeedsDay = Math.round(feeds.length / numDays * 10) / 10;
     const avgDiapersDay = Math.round(diapers.length / numDays * 10) / 10;
+    const avgMedsDay = Math.round(meds.length / numDays * 10) / 10;
 
     let html = `
       <div class="kpi-card">
@@ -1715,6 +2463,10 @@
           <div class="kpi-item">
             <div class="kpi-label">Diapers/day</div>
             <div class="kpi-value">${avgDiapersDay}</div>
+          </div>
+          <div class="kpi-item">
+            <div class="kpi-label">Meds/day</div>
+            <div class="kpi-value">${avgMedsDay}</div>
           </div>
           <div class="kpi-item">
             <div class="kpi-label">Formula %</div>
@@ -1780,17 +2532,19 @@
         <button class="activity-chip active" data-filter="all" onclick="setActivityFilter('all')">All</button>
         <button class="activity-chip" data-filter="feeds" onclick="setActivityFilter('feeds')">🍼 Feeds</button>
         <button class="activity-chip" data-filter="diapers" onclick="setActivityFilter('diapers')">🧷 Diapers</button>
+        <button class="activity-chip" data-filter="meds" onclick="setActivityFilter('meds')">💊 Meds</button>
       </div>`;
 
     // ── Timeline ──
     const allEvents = [
       ...feeds.map(f => ({ type: 'feed', time: f.fed_at, data: f })),
       ...diapers.map(d => ({ type: 'diaper', time: d.changed_at, data: d })),
+      ...meds.map(m => ({ type: 'med', time: m.given_at, data: m })),
     ].sort((a, b) => new Date(b.time) - new Date(a.time));
 
     const eventsByDay = {};
     allEvents.forEach(e => {
-      const day = e.time.slice(0, 10);
+      const day = localDayKey(e.time);
       (eventsByDay[day] = eventsByDay[day] || []).push(e);
     });
 
@@ -1815,6 +2569,16 @@
               <div class="timeline-card">
                 <span class="timeline-card-text">${feedTypeLabel(e.data.feed_type)}</span>
                 <span class="timeline-card-value">${e.data.amount_oz} oz</span>
+              </div>
+            </div>`;
+        } else if (e.type === 'med') {
+          html += `
+            <div class="timeline-entry" data-type="med">
+              <div class="timeline-dot med"></div>
+              <div class="timeline-time">${formatTime(e.time)}</div>
+              <div class="timeline-card">
+                <span class="timeline-card-text">💊 ${esc(e.data.medications ? e.data.medications.name : 'Medicine')}</span>
+                <span class="timeline-card-value">${e.data.dose_amount} ${esc(e.data.dose_unit)}</span>
               </div>
             </div>`;
         } else {
@@ -1846,6 +2610,7 @@
   fetchTodayFeedings();
   fetchTodayDiapers();
   fetchLastDiaperChange();
+  fetchMeds();
 </script>
 
 </body>
