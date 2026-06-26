@@ -962,6 +962,12 @@
       margin-left: 8px;
     }
 
+    /* timeline inline edit + per-entry actions */
+    .timeline-card-right { display: flex; align-items: center; gap: 8px; }
+    .timeline-card.editing { flex-wrap: wrap; gap: 6px; justify-content: flex-start; }
+    .timeline-card.editing .edit-dt-input { margin-bottom: 0; }
+    .timeline-card.editing .item-actions { margin-left: auto; }
+
     /* ── Edit toggle styles for diaper type in edit mode ── */
     .edit-type-toggles {
       display: flex;
@@ -1441,6 +1447,8 @@
   let medDoses        = [];
   let medsInterval    = null;
   let editingMedDoseId = null;
+  let trendsData       = null;
+  let editingTimelineKey = null;
   let medFormState    = null;
   let viewDayKey      = null;
   let babyProfile       = null;
@@ -2177,12 +2185,22 @@
   function renderMedsTodayList() {
     const el = document.getElementById('medsTodayList');
     if (!el) return;
+    const now = Date.now();
     const today = localDayKey(new Date().toISOString());
     const todays = medDoses
       .filter(d => { const ref = d.given_at || d.scheduled_for; return ref && localDayKey(ref) === today; })
       .sort((a, b) => new Date(b.given_at || b.scheduled_for) - new Date(a.given_at || a.scheduled_for));
 
-    if (todays.length === 0) { el.innerHTML = ''; return; }
+    if (todays.length === 0) {
+      const hasActive = medications.some(m => isMedActive(m, now));
+      el.innerHTML = hasActive
+        ? `<div class="empty-state">
+            <div class="empty-icon">💊</div>
+            <div class="empty-text">No medicine given to ${babyName()} yet today.<br>Mark a dose above when it's time.</div>
+          </div>`
+        : '';
+      return;
+    }
 
     const units = ['mL', 'mg', 'drops', 'IU', 'tsp', 'tablet'];
     const items = todays.map(d => {
@@ -2578,6 +2596,7 @@
     const diapers = diaperResult.data || [];
     const meds    = medResult.data || [];
 
+    trendsData = { feeds, diapers, meds };
     renderTrends(feeds, diapers, meds);
   }
 
@@ -2585,7 +2604,8 @@
   function setActivityFilter(filter) {
     activityFilter = filter;
     document.querySelectorAll('.activity-chip').forEach(c => c.classList.remove('active'));
-    document.querySelector(`.activity-chip[data-filter="${filter}"]`).classList.add('active');
+    const chip = document.querySelector(`.activity-chip[data-filter="${filter}"]`);
+    if (chip) chip.classList.add('active');
     const entries = document.querySelectorAll('.timeline-entry');
     entries.forEach(el => {
       if (filter === 'all') { el.style.display = ''; }
@@ -2595,6 +2615,77 @@
     });
   }
 
+  // ── Timeline edit/delete (feed | diaper | med) ──
+  function renderTrendsFromCache() {
+    if (!trendsData) return;
+    const f = activityFilter;
+    renderTrends(trendsData.feeds, trendsData.diapers, trendsData.meds);
+    if (f && f !== 'all') setActivityFilter(f);
+  }
+
+  function editTimelineEntry(type, id) {
+    editingTimelineKey = `${type}:${id}`;
+    renderTrendsFromCache();
+    requestAnimationFrame(() => {
+      const input = document.getElementById(`tl-edit-${type}-time-${id}`);
+      if (input) input.focus();
+    });
+  }
+
+  function cancelTimelineEdit() {
+    editingTimelineKey = null;
+    renderTrendsFromCache();
+  }
+
+  const TIMELINE_TABLE = { feed: 'feedings', diaper: 'diaper_changes', med: 'med_doses' };
+
+  async function saveTimelineEntry(type, id) {
+    const timeInput = document.getElementById(`tl-edit-${type}-time-${id}`);
+    if (!timeInput) return;
+    const newTs = dtLocalToISO(timeInput.value);
+    if (!newTs) return;
+    let patch;
+    if (type === 'feed') {
+      const ozEl = document.getElementById(`tl-edit-feed-oz-${id}`);
+      if (!ozEl) return;
+      const oz = parseFloat(ozEl.value);
+      if (isNaN(oz) || oz < 0.5 || oz > 20) return;
+      const at = document.querySelector(`#tl-edit-feed-types-${id} .edit-type-btn.active`);
+      const row = (trendsData && trendsData.feeds || []).find(x => x.id === id) || {};
+      patch = { fed_at: newTs, amount_oz: oz, feed_type: at ? at.dataset.type : row.feed_type };
+    } else if (type === 'med') {
+      const amtEl = document.getElementById(`tl-edit-med-amt-${id}`);
+      const unitEl = document.getElementById(`tl-edit-med-unit-${id}`);
+      if (!amtEl || !unitEl) return;
+      const amt = parseFloat(amtEl.value);
+      if (isNaN(amt) || amt <= 0) return;
+      const unit = unitEl.value;
+      patch = { given_at: newTs, dose_amount: amt, dose_unit: unit };
+    } else {
+      const notesEl = document.getElementById(`tl-edit-diaper-notes-${id}`);
+      const at = document.querySelector(`#tl-edit-diaper-types-${id} .edit-type-btn.active`);
+      const row = (trendsData && trendsData.diapers || []).find(x => x.id === id) || {};
+      patch = { changed_at: newTs, diaper_type: at ? at.dataset.type : row.diaper_type, notes: notesEl ? (notesEl.value.trim() || null) : null };
+    }
+    const { error } = await client.from(TIMELINE_TABLE[type]).update(patch).eq('id', id);
+    if (error) return;
+    editingTimelineKey = null;
+    const f = activityFilter;
+    await fetchTrends();
+    if (type === 'diaper') fetchLastDiaperChange();
+    if (f && f !== 'all') setActivityFilter(f);
+  }
+
+  async function deleteTimelineEntry(type, id) {
+    const { error } = await client.from(TIMELINE_TABLE[type]).delete().eq('id', id);
+    if (error) return;
+    if (editingTimelineKey === `${type}:${id}`) editingTimelineKey = null;
+    const f = activityFilter;
+    await fetchTrends();
+    if (type === 'diaper') fetchLastDiaperChange();
+    if (f && f !== 'all') setActivityFilter(f);
+  }
+
   // ── Group feeds by day ──
   function groupFeedsByDay(feeds) {
     return feeds.reduce((acc, f) => {
@@ -2602,6 +2693,101 @@
       (acc[day] = acc[day] || []).push(f);
       return acc;
     }, {});
+  }
+
+  // ── One timeline entry (static card + actions, or inline edit form) ──
+  function timelineEntryHTML(e, editingKey) {
+    const id = e.data.id;
+    const editing = editingKey === `${e.type}:${id}`;
+
+    if (e.type === 'feed') {
+      const card = editing
+        ? `<div class="timeline-card editing">
+            <input type="datetime-local" class="edit-time-input edit-dt-input" id="tl-edit-feed-time-${id}" value="${getLocalDateTimeValue(e.data.fed_at)}"
+              onkeydown="if(event.key==='Enter')saveTimelineEntry('feed',${id});if(event.key==='Escape')cancelTimelineEdit()">
+            <div id="tl-edit-feed-types-${id}" class="edit-type-toggles">
+              <button class="edit-type-btn ${e.data.feed_type === 'formula' ? 'active' : ''}" data-type="formula"
+                onclick="this.parentElement.querySelectorAll('.edit-type-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">🍼</button>
+              <button class="edit-type-btn ${e.data.feed_type === 'breast_milk' ? 'active' : ''}" data-type="breast_milk"
+                onclick="this.parentElement.querySelectorAll('.edit-type-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">🤱</button>
+            </div>
+            <input type="number" class="edit-oz-input" id="tl-edit-feed-oz-${id}" value="${e.data.amount_oz}" step="0.5" min="0.5" max="20">
+            <div class="item-actions">
+              <button class="item-btn save" onclick="saveTimelineEntry('feed',${id})" aria-label="Save">✓</button>
+              <button class="item-btn" onclick="cancelTimelineEdit()" aria-label="Cancel">×</button>
+            </div>
+          </div>`
+        : `<div class="timeline-card">
+            <span class="timeline-card-text">${feedTypeLabel(e.data.feed_type)}</span>
+            <div class="timeline-card-right">
+              <span class="timeline-card-value">${e.data.amount_oz} oz</span>
+              <div class="item-actions">
+                <button class="item-btn" onclick="editTimelineEntry('feed',${id})" aria-label="Edit">✎</button>
+                <button class="item-btn" onclick="deleteTimelineEntry('feed',${id})" aria-label="Delete">×</button>
+              </div>
+            </div>
+          </div>`;
+      return `<div class="timeline-entry" data-type="feed"><div class="timeline-dot feed"></div><div class="timeline-time">${formatTime(e.time)}</div>${card}</div>`;
+    }
+
+    if (e.type === 'med') {
+      const units = ['mL', 'mg', 'drops', 'IU', 'tsp', 'tablet'];
+      const card = editing
+        ? `<div class="timeline-card editing">
+            <input type="datetime-local" class="edit-time-input edit-dt-input" id="tl-edit-med-time-${id}" value="${getLocalDateTimeValue(e.data.given_at)}"
+              onkeydown="if(event.key==='Enter')saveTimelineEntry('med',${id});if(event.key==='Escape')cancelTimelineEdit()">
+            <input type="number" class="edit-oz-input" id="tl-edit-med-amt-${id}" value="${e.data.dose_amount}" step="0.5" min="0">
+            <select class="med-select" id="tl-edit-med-unit-${id}" style="width:auto;flex:0 0 80px;padding:6px 8px;font-size:13px;">
+              ${units.map(u => `<option value="${u}" ${e.data.dose_unit === u ? 'selected' : ''}>${u}</option>`).join('')}
+            </select>
+            <div class="item-actions">
+              <button class="item-btn save" onclick="saveTimelineEntry('med',${id})" aria-label="Save">✓</button>
+              <button class="item-btn" onclick="cancelTimelineEdit()" aria-label="Cancel">×</button>
+            </div>
+          </div>`
+        : `<div class="timeline-card">
+            <span class="timeline-card-text">💊 ${esc(e.data.medications ? e.data.medications.name : 'Medicine')}</span>
+            <div class="timeline-card-right">
+              <span class="timeline-card-value">${e.data.dose_amount} ${esc(e.data.dose_unit)}</span>
+              <div class="item-actions">
+                <button class="item-btn" onclick="editTimelineEntry('med',${id})" aria-label="Edit">✎</button>
+                <button class="item-btn" onclick="deleteTimelineEntry('med',${id})" aria-label="Delete">×</button>
+              </div>
+            </div>
+          </div>`;
+      return `<div class="timeline-entry" data-type="med"><div class="timeline-dot med"></div><div class="timeline-time">${formatTime(e.time)}</div>${card}</div>`;
+    }
+
+    // diaper
+    const card = editing
+      ? `<div class="timeline-card editing">
+          <input type="datetime-local" class="edit-time-input edit-dt-input" id="tl-edit-diaper-time-${id}" value="${getLocalDateTimeValue(e.data.changed_at)}"
+            onkeydown="if(event.key==='Enter')saveTimelineEntry('diaper',${id});if(event.key==='Escape')cancelTimelineEdit()">
+          <div id="tl-edit-diaper-types-${id}" class="edit-type-toggles">
+            <button class="edit-type-btn ${e.data.diaper_type === 'wet' ? 'active' : ''}" data-type="wet"
+              onclick="this.parentElement.querySelectorAll('.edit-type-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">💧</button>
+            <button class="edit-type-btn ${e.data.diaper_type === 'dirty' ? 'active' : ''}" data-type="dirty"
+              onclick="this.parentElement.querySelectorAll('.edit-type-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">💩</button>
+            <button class="edit-type-btn ${e.data.diaper_type === 'both' ? 'active' : ''}" data-type="both"
+              onclick="this.parentElement.querySelectorAll('.edit-type-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">💧💩</button>
+          </div>
+          <input type="text" class="edit-notes-input" id="tl-edit-diaper-notes-${id}" value="${esc(e.data.notes || '')}" placeholder="Notes...">
+          <div class="item-actions">
+            <button class="item-btn save" onclick="saveTimelineEntry('diaper',${id})" aria-label="Save">✓</button>
+            <button class="item-btn" onclick="cancelTimelineEdit()" aria-label="Cancel">×</button>
+          </div>
+        </div>`
+      : `<div class="timeline-card">
+          <span class="timeline-card-text">${diaperTypeLabel(e.data.diaper_type)}</span>
+          <div class="timeline-card-right">
+            ${e.data.notes ? `<span class="timeline-card-notes">${esc(e.data.notes)}</span>` : ''}
+            <div class="item-actions">
+              <button class="item-btn" onclick="editTimelineEntry('diaper',${id})" aria-label="Edit">✎</button>
+              <button class="item-btn" onclick="deleteTimelineEntry('diaper',${id})" aria-label="Delete">×</button>
+            </div>
+          </div>
+        </div>`;
+    return `<div class="timeline-entry" data-type="diaper"><div class="timeline-dot diaper"></div><div class="timeline-time">${formatTime(e.time)}</div>${card}</div>`;
   }
 
   // ── Render trends ──
@@ -2754,39 +2940,7 @@
           <div class="timeline-day-sub">${full}</div>
         </div>`;
 
-      eventsByDay[day].forEach(e => {
-        if (e.type === 'feed') {
-          html += `
-            <div class="timeline-entry" data-type="feed">
-              <div class="timeline-dot feed"></div>
-              <div class="timeline-time">${formatTime(e.time)}</div>
-              <div class="timeline-card">
-                <span class="timeline-card-text">${feedTypeLabel(e.data.feed_type)}</span>
-                <span class="timeline-card-value">${e.data.amount_oz} oz</span>
-              </div>
-            </div>`;
-        } else if (e.type === 'med') {
-          html += `
-            <div class="timeline-entry" data-type="med">
-              <div class="timeline-dot med"></div>
-              <div class="timeline-time">${formatTime(e.time)}</div>
-              <div class="timeline-card">
-                <span class="timeline-card-text">💊 ${esc(e.data.medications ? e.data.medications.name : 'Medicine')}</span>
-                <span class="timeline-card-value">${e.data.dose_amount} ${esc(e.data.dose_unit)}</span>
-              </div>
-            </div>`;
-        } else {
-          html += `
-            <div class="timeline-entry" data-type="diaper">
-              <div class="timeline-dot diaper"></div>
-              <div class="timeline-time">${formatTime(e.time)}</div>
-              <div class="timeline-card">
-                <span class="timeline-card-text">${diaperTypeLabel(e.data.diaper_type)}</span>
-                ${e.data.notes ? `<span class="timeline-card-notes">${esc(e.data.notes)}</span>` : ''}
-              </div>
-            </div>`;
-        }
-      });
+      eventsByDay[day].forEach(e => { html += timelineEntryHTML(e, editingTimelineKey); });
     });
 
     html += '</div>';
