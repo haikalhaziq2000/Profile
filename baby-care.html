@@ -1008,6 +1008,11 @@
       background: linear-gradient(135deg, rgba(231,76,60,0.12), rgba(231,76,60,0.03));
     }
 
+    .meds-card.done {
+      border-color: rgba(108,192,112,0.35);
+      background: linear-gradient(135deg, rgba(108,192,112,0.12), rgba(108,192,112,0.03));
+    }
+
     .meds-card-top {
       display: flex;
       justify-content: space-between;
@@ -1036,6 +1041,25 @@
     }
 
     .meds-card-count.overdue { color: #e74c3c; }
+
+    .meds-card-progress {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--rose);
+      background: var(--rose-soft);
+      border: 1px solid rgba(232,116,138,0.3);
+      border-radius: 999px;
+      padding: 2px 9px;
+    }
+    .meds-card-progress.done {
+      color: #6cc070;
+      background: rgba(108,192,112,0.12);
+      border-color: rgba(108,192,112,0.35);
+    }
+    .meds-dose-log { margin-top: 10px; display: flex; flex-direction: column; gap: 3px; }
+    .meds-dose-log-item { font-size: 11px; color: var(--muted2); }
 
     .meds-card-actions { display: flex; gap: 6px; margin-top: 12px; }
     .meds-card-actions .log-btn { padding: 10px; font-size: 13px; }
@@ -1620,6 +1644,38 @@
     return s + ' · ' + daysLeft + ' day' + (daysLeft !== 1 ? 's' : '') + ' left';
   }
 
+  // ── Daily dose summary (pure) ──
+  function scheduledCountForDay(med, dayKey) {
+    const startMs = new Date(med.start_at).getTime();
+    const end = medEndAt(med);
+    const endMs = end ? end.getTime() : Infinity;
+    const [y, mo, da] = dayKey.split('-').map(Number);
+    const dayStart = new Date(y, mo - 1, da, 0, 0, 0, 0).getTime();
+    const dayEnd = dayStart + 86400000;
+    let count = 0;
+    if (med.schedule_type === 'interval') {
+      const step = med.interval_hours * 3600000;
+      if (!(step > 0)) return 0;
+      const kStart = Math.max(0, Math.ceil((dayStart - startMs) / step));
+      for (let slot = startMs + kStart * step; slot < dayEnd && slot <= endMs; slot += step) {
+        if (slot >= startMs) count++;
+      }
+    } else {
+      for (const t of (med.fixed_times || [])) {
+        const [h, mi] = t.split(':').map(Number);
+        const slot = new Date(y, mo - 1, da, h, mi, 0, 0).getTime();
+        if (slot >= startMs && slot <= endMs) count++;
+      }
+    }
+    return count;
+  }
+
+  function givenDosesForDay(doses, dayKey) {
+    return doses
+      .filter(d => d.status === 'given' && d.given_at && localDayKey(d.given_at) === dayKey)
+      .sort((a, b) => new Date(a.given_at) - new Date(b.given_at));
+  }
+
   function esc(str) {
     const d = document.createElement('div');
     d.textContent = str;
@@ -2100,19 +2156,33 @@
     }
 
     el.innerHTML = active.map(med => {
-      const st = doseStatus(med, dosesForMed(med.id), now);
+      const md = dosesForMed(med.id);
+      const st = doseStatus(med, md, now);
       const dose = `${med.dose_amount} ${esc(med.dose_unit)}`;
+
+      const todayKey = localDayKey(new Date(now).toISOString());
+      const sched = scheduledCountForDay(med, todayKey);
+      const givenToday = givenDosesForDay(md, todayKey);
+      const x = givenToday.length;
+      const progressTxt = sched > 0 ? `${x}/${sched} today` : `${x} given today`;
+      const done = sched > 0 && x >= sched;
+      const progressHtml = `<div class="meds-card-progress${done ? ' done' : ''}">${progressTxt}</div>`;
+      const logHtml = givenToday.length
+        ? `<div class="meds-dose-log">${givenToday.map(d => `<div class="meds-dose-log-item">✓ ${formatTime(d.given_at)} · ${d.dose_amount} ${esc(d.dose_unit)}</div>`).join('')}</div>`
+        : '';
 
       if (st.state === 'none') {
         return `
-        <div class="meds-card">
+        <div class="meds-card${done ? ' done' : ''}">
           <div class="meds-card-top">
             <div>
               <div class="meds-card-name">${esc(med.name)}</div>
               <div class="meds-card-dose">${dose}</div>
+              ${progressHtml}
             </div>
             <div class="meds-card-right"><div class="meds-card-sub">No upcoming dose</div></div>
           </div>
+          ${logHtml}
         </div>`;
       }
 
@@ -2120,11 +2190,12 @@
       const label = overdue ? 'Overdue by' : 'Next dose in';
       const slotTime = formatTime(new Date(st.slotMs).toISOString());
       return `
-        <div class="meds-card ${overdue ? 'overdue-card' : ''}">
+        <div class="meds-card ${overdue ? 'overdue-card' : ''}${done ? ' done' : ''}">
           <div class="meds-card-top">
             <div>
               <div class="meds-card-name">${esc(med.name)}</div>
               <div class="meds-card-dose">${dose}</div>
+              ${progressHtml}
             </div>
             <div class="meds-card-right">
               <div class="meds-card-sub">${label}</div>
@@ -2132,6 +2203,7 @@
               <div class="meds-card-sub">${overdue ? 'due ' : 'at '}${slotTime}</div>
             </div>
           </div>
+          ${logHtml}
           ${overdue ? `
           <div class="meds-card-actions">
             <button class="log-btn" onclick="markDoseGiven(${med.id})">✓ Mark given</button>
